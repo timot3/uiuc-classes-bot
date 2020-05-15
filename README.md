@@ -19,7 +19,7 @@ Elementary analysis of algorithms. Prerequisite: CS 125 or ECE 220; One of CS 17
 ```
 
 ### TODO:
-[] Make the docker container public. 
+- [ ] Make the docker container public. 
 For this, I need to figure out how to use docker secrets first to not push my bot token. 
 When I finish learning this, the docker container will be available [here](https://hub.docker.com/r/timot3/uiuc-classes). 
 
