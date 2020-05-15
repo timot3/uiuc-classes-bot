@@ -18,8 +18,8 @@ programming language. Solutions to a variety of computational problems such as s
 Elementary analysis of algorithms. Prerequisite: CS 125 or ECE 220; One of CS 173, MATH 213, MATH 347, MATH 412 or MATH 413.
 ```
 
-###TODO:
-[ ] Make the docker container public. 
+### TODO:
+[] Make the docker container public. 
 For this, I need to figure out how to use docker secrets first to not push my bot token. 
 When I finish learning this, the docker container will be available [here](https://hub.docker.com/r/timot3/uiuc-classes). 
 
