@@ -1,5 +1,5 @@
 # UIUC Discord Classes Bot
-Inspired by [Professor Wade Fagen-Ulmschneider's Reddit bot](https://github.com/illinois/reddit-uiuc-bot/blob/master/process_reddit_post.py)
+Inspired by [Professor Wade Fagen-Ulmschneider's Reddit bot](https://github.com/illinois/reddit-uiuc-bot/)
 
 To request a class, first add this bot to your discord server:
 https://discord.com/api/oauth2/authorize?client_id=710426023224934490&permissions=0&scope=bot
