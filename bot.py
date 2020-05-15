@@ -70,15 +70,20 @@ async def on_message(message):
             if len(line) == 0:
                 await message.channel.send(class_str + ': Could not find this class. It is likely not offered in FA 2020.\n')
             else:
-                print('responded to: ' + course + ' in channel: ' + message.channel.name)
+                print('responded to: ' + class_str + ' in channel: ' + message.channel.name)
 
                 class_name = line['Name'].iloc[0]
                 line = line.loc[classes_offered['Class'] == class_str]
                 crh = line['Credit Hours'].iloc[0]
                 gpa = get_recent_average_gpa(class_str)
+                if gpa is None:
+                    gpa = 'Not enough data.'
+                else:
+                    gpa = str(round(gpa, 2))
+
                 desc = (line.iloc[0]['Description'])
                 message_string = class_str +': ' + class_name + '\nCredit hours: ' + \
-                    crh + '\nAverage GPA: ' + str(round(gpa, 2)) + \
+                    crh + '\nAverage GPA: ' + gpa + \
                     '\n> ' + desc
                 await message.channel.send(message_string)
                 message_string = ''
