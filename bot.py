@@ -1,6 +1,5 @@
 #from dotenv import load_dotenv
 from discord.ext import commands
-import os
 import discord
 import re
 import random
@@ -48,7 +47,7 @@ def get_recent_average_gpa(course):
 @bot.event
 async def on_ready():
     print("logged in as: " + bot.user.name + '\n')
-    await bot.change_presence(activity=discord.Game(name="a game"))
+    await bot.change_presence(activity=discord.Game(name="ex: [CS 225]"))
 
 
 @bot.event
@@ -67,14 +66,16 @@ async def on_message(message):
             class_str = course[0].upper() + course[1]
             #line = classes_offered.loc[classes_offered['Subject']== course[0].upper()]
             line = classes_offered.loc[classes_offered['Class'] == class_str]
+            class_name = line['Name'].iloc[0]
+            
             if len(line) == 0:
                 await message.channel.send(class_str + ': Could not find this class. It is likely not offered in FA 2020.\n')
             else:
                 line = line.loc[classes_offered['Class'] == class_str]
-                crh = line.iloc[0]['Credit Hours']
+                crh = line['Credit Hours'].iloc[0]
                 gpa = get_recent_average_gpa(class_str)
                 desc = (line.iloc[0]['Description'])
-                message_string = class_str + '\nCredit hours: ' + \
+                message_string = class_str +': ' + class_name + '\nCredit hours: ' + \
                     crh + '\nAverage GPA: ' + str(round(gpa, 2)) + \
                     '\n> ' + desc
                 await message.channel.send(message_string)
