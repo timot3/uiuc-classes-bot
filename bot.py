@@ -66,11 +66,13 @@ async def on_message(message):
             class_str = course[0].upper() + course[1]
             #line = classes_offered.loc[classes_offered['Subject']== course[0].upper()]
             line = classes_offered.loc[classes_offered['Class'] == class_str]
-            class_name = line['Name'].iloc[0]
             
             if len(line) == 0:
                 await message.channel.send(class_str + ': Could not find this class. It is likely not offered in FA 2020.\n')
             else:
+                print('responded to: ' + course + ' in channel: ' + message.channel.name)
+
+                class_name = line['Name'].iloc[0]
                 line = line.loc[classes_offered['Class'] == class_str]
                 crh = line['Credit Hours'].iloc[0]
                 gpa = get_recent_average_gpa(class_str)
@@ -81,8 +83,6 @@ async def on_message(message):
                 await message.channel.send(message_string)
                 message_string = ''
 
-    print('responded to: ' + message.content)
-    print(classes)
 
     await bot.process_commands(message)
 
