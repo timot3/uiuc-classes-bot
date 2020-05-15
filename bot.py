@@ -115,7 +115,7 @@ async def await_8ball(ctx, arg):
 
 
 
-bot.run(TOKEN)
+bot.run(TOKEN.strip())
 
 
 # \[[A-Za-z]{2,4}\s?(\d{3})\]
