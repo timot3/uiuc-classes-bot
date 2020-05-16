@@ -71,7 +71,17 @@ async def on_message(message):
             
             if len(line) == 0:
                 # check if page exists in course explorer
+                course_page_exists = True
+                course_explorer_online = False
+                # verify course explorer website is online
                 if requests.get("https://courses.illinois.edu/schedule/terms/"+course[0].upper()+"/"+course[1]).status_code == 200:
+                    course_explorer_online = True
+                    # verify course is a real class
+                    soup = BeautifulSoup(requests.get("https://courses.illinois.edu/schedule/terms/"+course[0].upper()+"/"+course[1]).content, 'html.parser')
+                    if "404" in soup.text:
+                        course_page_exists = False
+                # if course page exists, fetch class data
+                if course_page_exists and course_explorer_online:
                     # get page & parse w BS4
                     page = requests.get("https://courses.illinois.edu/schedule/terms/"+course[0].upper()+"/"+course[1])
                     soup = BeautifulSoup(page.content, 'html.parser')
