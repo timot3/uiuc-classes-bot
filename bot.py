@@ -4,6 +4,8 @@ import discord
 import re
 import random
 import pandas as pd
+import requests
+from bs4 import BeautifulSoup
 
 TOKEN = ''
 
@@ -68,7 +70,48 @@ async def on_message(message):
             line = classes_offered.loc[classes_offered['Class'] == class_str]
             
             if len(line) == 0:
-                await message.channel.send(class_str + ': Could not find this class. It is likely not offered in FA 2020.\n')
+                # check if page exists in course explorer
+                course_page_exists = True
+                course_explorer_online = False
+                # verify course explorer website is online
+                if requests.get("https://courses.illinois.edu/schedule/terms/"+course[0].upper()+"/"+course[1]).status_code == 200:
+                    course_explorer_online = True
+                    # verify course is a real class
+                    soup = BeautifulSoup(requests.get("https://courses.illinois.edu/schedule/terms/"+course[0].upper()+"/"+course[1]).content, 'html.parser')
+                    if "404" in soup.text:
+                        course_page_exists = False
+                # if course page exists, fetch class data
+                if course_page_exists and course_explorer_online:
+                    # get page & parse w BS4
+                    page = requests.get("https://courses.illinois.edu/schedule/terms/"+course[0].upper()+"/"+course[1])
+                    soup = BeautifulSoup(page.content, 'html.parser')
+                    all_a_tags = soup.find_all('a')
+                    # get all terms that the class has been offered
+                    terms_offered = []
+                    for a in all_a_tags:
+                        if "Fall" in a.contents[0] or "Spring" in a.contents[0] or "Summer" in a.contents[0]:
+                            terms_offered.append(a.contents[0].strip())
+                    # get other class data (i.e. description, credit hours, full name)
+                    most_recent_term = terms_offered[0]
+                    term = most_recent_term.split()
+                    course_page = requests.get("https://courses.illinois.edu/schedule/"+term[1]+"/"+term[0]+"/"+course[0].upper()+"/"+course[1])
+                    new_soup = BeautifulSoup(course_page.content, 'html.parser')
+                    class_name = new_soup.find("span", class_="app-label app-text-engage").contents[0]
+                    class_info = new_soup.find_all("div", class_="col-sm-12")[3].find_all("p")
+                    crh = class_info[0].contents[1]
+                    desc = class_info[1].contents[0]
+                    status = "Most recently offered in: "+most_recent_term
+                    # build & send message on Discord
+                    message_string = class_str +': ' + class_name + \
+                        '\nCredit hours: ' + crh + \
+                        '\nAverage GPA: N/A' + \
+                        '\nStatus: ' + status + \
+                        '\n> ' + desc
+                    await message.channel.send(message_string)
+                    message_string = ''
+                else:
+                    # if page not in course explorer, send the sad msg :(
+                    await message.channel.send(class_str + ': Could not find this class. It is likely not offered in FA 2020.\n')
             else:
                 print('responded to: ' + class_str + ' in channel: ' + message.channel.name)
                 class_name = line['Name'].iloc[0].replace('&amp;', '&')
