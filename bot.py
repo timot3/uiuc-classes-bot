@@ -91,6 +91,7 @@ async def on_message(message):
                     for a in all_a_tags:
                         if "Fall" in a.contents[0] or "Spring" in a.contents[0] or "Summer" in a.contents[0]:
                             terms_offered.append(a.contents[0].strip())
+                            break
                     # get other class data (i.e. description, credit hours, full name)
                     most_recent_term = terms_offered[0]
                     term = most_recent_term.split()
@@ -100,6 +101,8 @@ async def on_message(message):
                     class_info = new_soup.find_all("div", class_="col-sm-12")[3].find_all("p")
                     crh = class_info[0].contents[1]
                     desc = class_info[1].contents[0]
+                    #print (class_info[2])
+                    #print (class_info)
                     status = "Most recently offered in: "+most_recent_term
                     # build & send message on Discord
                     message_string = class_str +': ' + class_name + \
