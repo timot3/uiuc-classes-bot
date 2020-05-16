@@ -71,7 +71,7 @@ async def on_message(message):
                 await message.channel.send(class_str + ': Could not find this class. It is likely not offered in FA 2020.\n')
             else:
                 print('responded to: ' + class_str + ' in channel: ' + message.channel.name)
-                class_name = line['Name'].iloc[0]
+                class_name = line['Name'].iloc[0].replace('&amp;', '&')
                 line = line.loc[classes_offered['Class'] == class_str]
                 crh = line['Credit Hours'].iloc[0]
                 status = line['YearTerm'].iloc[0].strip()
@@ -88,7 +88,7 @@ async def on_message(message):
                 else:
                     gpa = str(round(gpa, 2))
 
-                desc = (line.iloc[0]['Description'])
+                desc = (line.iloc[0]['Description']).replace(' &amp;', '&')
                 message_string = class_str +': ' + class_name + \
                     '\nCredit hours: ' + crh + \
                     '\nAverage GPA: ' + gpa + \
