@@ -13,7 +13,7 @@ with open('config.txt', 'r') as f:
 
 # load_dotenv()
 
-classes_offered = pd.read_csv('data/2020-fa.csv')
+classes_offered = pd.read_csv('data/classes-fa-sp-2020.csv')
 classes_offered['Class'] = classes_offered['Subject'] + \
     classes_offered['Number'].astype(str)
 
@@ -71,10 +71,17 @@ async def on_message(message):
                 await message.channel.send(class_str + ': Could not find this class. It is likely not offered in FA 2020.\n')
             else:
                 print('responded to: ' + class_str + ' in channel: ' + message.channel.name)
-
                 class_name = line['Name'].iloc[0]
                 line = line.loc[classes_offered['Class'] == class_str]
                 crh = line['Credit Hours'].iloc[0]
+                status = line['YearTerm'].iloc[0].strip()
+
+                if status == '2020-fa':
+                    status = 'Offered in FA-2020.'
+                else:
+                    status = 'Likely not offered in FA-2020.'
+
+
                 gpa = get_recent_average_gpa(class_str)
                 if gpa is None:
                     gpa = 'Not enough data.'
@@ -82,8 +89,10 @@ async def on_message(message):
                     gpa = str(round(gpa, 2))
 
                 desc = (line.iloc[0]['Description'])
-                message_string = class_str +': ' + class_name + '\nCredit hours: ' + \
-                    crh + '\nAverage GPA: ' + gpa + \
+                message_string = class_str +': ' + class_name + \
+                    '\nCredit hours: ' + crh + \
+                    '\nAverage GPA: ' + gpa + \
+                    '\nStatus: ' + status + \
                     '\n> ' + desc
                 await message.channel.send(message_string)
                 message_string = ''
