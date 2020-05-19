@@ -36,7 +36,7 @@ class Class:
         self.status = status
 
     def get_embed(self):
-        colors = [0x12294b, 0xe84b38, 0xffffff]
+        colors = [0x12294b, 0xe84b38]
         embed = discord.Embed(title=self.title, description=self.desc, url=self.url, color=random.choice(colors))
         embed.add_field(name='Credit Hours', value=self.crh, inline=False)
         embed.add_field(name='Average GPA', value=self.gpa, inline=False)
