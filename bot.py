@@ -10,10 +10,9 @@ from bs4 import BeautifulSoup
 TOKEN = ''
 
 
-with open('embed-config.txt', 'r') as f:
+with open('config.txt', 'r') as f:
     TOKEN = f.readline()
 
-# load_dotenv()
 class Class:
     def __init__(self):
         # self.class_name = ''
@@ -26,9 +25,7 @@ class Class:
 
 
     def __init__(self, name, title, crh, gpa, status, desc):
-        # ([A-Za-z]{2, 4})\s?(\d{3})
-        # print('name='+name)
-        # print('title='+title)
+
         self.class_name = name
         self.title = name +': ' + title
         dept, num = self.__get_class(name)
@@ -48,7 +45,6 @@ class Class:
     
     def __get_class(self, str):
         temp = re.findall('([A-Za-z]{2,4})\s?(\d{3})', str)
-        # print(temp)
         return temp[0][0], temp[0][1]
 
 
@@ -62,13 +58,11 @@ class_gpa = pd.read_csv('data/uiuc-gpa-dataset.csv')
 
 class_gpa['Class'] = class_gpa['Subject'] + class_gpa['Number'].astype(str)
 
-# print(classes_offered.head())
 
 bot = commands.Bot(command_prefix='$')
 
 
 # Taken from Prof. Wade's reddit-uiuc-bot.
-
 def get_recent_average_gpa(course):
     df = class_gpa[class_gpa["Class"] == course].groupby(
         "Class").agg("sum").reset_index()
@@ -85,6 +79,7 @@ def get_recent_average_gpa(course):
     df["Average GPA"] = df["Sum GPA"] / df["Count GPA"]
     return df["Average GPA"].values[0]
 
+# What to do when bot is online: set status
 @bot.event
 async def on_ready():
     print('Bot online.')
@@ -93,14 +88,17 @@ async def on_ready():
     await bot.change_presence(activity=discord.Game(name="ex: [CS 225]"))
 
 
+#parse every message
 @bot.event
 async def on_message(message):
     channel = message.channel
+    #Make sure the bot does not respond to its own messages.
     if message.author == bot.user:
         return
-    classes = re.findall(
-        '\\\\?\[([A-Za-z]{2,4})\s?(\d{3})\\\\?\]', message.content)
-    # print (classes[0])
+
+    # Find all classes in an input string.
+    classes = re.findall('\\\\?\[([A-Za-z]{2,4})\s?(\d{3})\\\\?\]', message.content)
+    # If classes found
     if (len(classes) > 0):
         #msg = []
         # await message.channel.send(classes)
@@ -159,17 +157,20 @@ async def on_message(message):
                     # if page not in course explorer, send the sad msg :(
                     await message.channel.send(class_str + ': Could not find this class.\n')
             else:
-                print('responded to: ' + class_str + ' in channel: ' + message.channel.name)
-                class_name = line['Name'].iloc[0].replace('&amp;', '&')
+                # Debugging help
+                # print('responded to: ' + class_str + ' in channel: ' + message.channel.name)
+
+                # Get information about a class.
+                class_name = line['Name'].iloc[0].replace('&amp;', '&') # fix issues with the ampersand
                 line = line.loc[classes_offered['Class'] == class_str]
                 crh = line['Credit Hours'].iloc[0]
                 status = line['YearTerm'].iloc[0].strip()
+                desc = (line.iloc[0]['Description']).replace(' &amp;', '&')
 
                 if status == '2020-fa':
                     status = 'Offered in fa-2020.'
                 else:
                     status = 'Offered in sp-2020. May be offered in fa-2020.'
-
 
                 gpa = get_recent_average_gpa(class_str)
                 if gpa is None:
@@ -177,7 +178,7 @@ async def on_message(message):
                 else:
                     gpa = str(round(gpa, 2))
 
-                desc = (line.iloc[0]['Description']).replace(' &amp;', '&')
+                # Make a Class object with all information about the class.
                 message_str = Class(class_str, class_name, crh, gpa, status, desc)
 
                 # message_string = class_str +': ' + class_name + \
@@ -185,10 +186,13 @@ async def on_message(message):
                 #     '\nAverage GPA: ' + gpa + \
                 #     '\nStatus: ' + status + \
                 #     '\n> ' + desc
+
+                # send embed in channel
                 await message.channel.send(embed=message_str.get_embed())
                 # message_string = ''
 
 
     await bot.process_commands(message)
 
+#Run the bot.
 bot.run(TOKEN.strip())
