@@ -12,7 +12,7 @@ Example:
 
 ![cs225](https://cdn.discordapp.com/attachments/705899037848502303/712438962647728168/unknown.png)
 
-You can use multiple classes on the same line as well.
+You can request multiple classes on the same line as well.
 
 ![two-classes](https://cdn.discordapp.com/attachments/705899037848502303/712440043154702336/two-classes.png)
 
