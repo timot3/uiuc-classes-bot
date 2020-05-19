@@ -8,20 +8,19 @@ https://discord.com/api/oauth2/authorize?client_id=710426023224934490&permission
 `['department''class number']`. 
 This command is case-insensitive.
 
-Example: [cs 225] returns 
-```
-CS225: Data Structures
-Credit hours: 4 hours.
-Average GPA: 3.22
-> Data abstractions: elementary data structures (lists, stacks, queues, and trees) and their implementation using an object-oriented 
-programming language. Solutions to a variety of computational problems such as search on graphs and trees. 
-Elementary analysis of algorithms. Prerequisite: CS 125 or ECE 220; One of CS 173, MATH 213, MATH 347, MATH 412 or MATH 413.
-```
+Example:
+
+![cs225](https://cdn.discordapp.com/attachments/705899037848502303/712438962647728168/unknown.png)
+
+You can use multiple classes on the same line as well.
+
+![two-classes](https://cdn.discordapp.com/attachments/705899037848502303/712440043154702336/two-classes.png)
 
 ### TODO:
-- [ ] Make the docker container (hosted on docker hub) actually work. 
+- Make the docker container (hosted on docker hub) actually work. 
 For this, I need to figure out how to use docker secrets first to not push my bot token. 
-When I finish learning this, the docker container will be available [here](https://hub.docker.com/r/timot3/uiuc-classes). 
 
-Currently I have my own container (with the token in a config.txt file) running on an AWS t2.micro instance.
+The docker container is available [here](https://hub.docker.com/r/timot3/uiuc-classes), but you cannot run that container without a config.txt file with your token.
+
+Currently I have my own container running on an AWS t2.micro instance.
 
