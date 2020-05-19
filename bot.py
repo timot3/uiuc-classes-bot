@@ -10,10 +10,40 @@ from bs4 import BeautifulSoup
 TOKEN = ''
 
 
-with open('config.txt', 'r') as f:
+with open('embed-config.txt', 'r') as f:
     TOKEN = f.readline()
 
 # load_dotenv()
+class Class:
+    def __init__(self):
+        # self.class_name = ''
+        self.title = ''
+        self.url = 'https://courses.illinois.edu/schedule/terms/'
+        self.crh = ''
+        self.gpa = ''
+        self.desc = ''
+        self.status = ''
+
+
+    def __init__(self, name, title, crh, gpa, status, desc):
+        # ([A-Za-z]{2, 4})\s?(\d{3})
+        self.class_name = name
+        self.title = name + title
+        dept, num = re.find('([A-Za-z]{2,4})\s?(\d{3})', name)
+        self.url = 'https://courses.illinois.edu/schedule/terms/' + dept + '/' + num
+        self.crh = crh
+        self.gpa = gpa
+        self.desc = desc
+        self.status = status
+
+    def get_embed(self):
+        colors = [0x12294b, 0xe84b38]
+        embed = discord.Embed(title=self.title, description=self.desc, url=self.url, color=random.choice(colors))
+        embed.add_field(name='Credit Hours', value=self.crh, inline=False)
+        embed.add_field(name='Average GPA', value=self.gpa, inline=False)
+        embed.add_field(name='status', value=self.status, inline=False)
+        return embed
+
 
 classes_offered = pd.read_csv('data/classes-fa-sp-2020.csv')
 classes_offered['Class'] = classes_offered['Subject'] + \
@@ -30,6 +60,7 @@ bot = commands.Bot(command_prefix='$')
 
 
 # Taken from Prof. Wade's reddit-uiuc-bot.
+
 def get_recent_average_gpa(course):
     df = class_gpa[class_gpa["Class"] == course].groupby(
         "Class").agg("sum").reset_index()
@@ -135,48 +166,17 @@ async def on_message(message):
                     gpa = str(round(gpa, 2))
 
                 desc = (line.iloc[0]['Description']).replace(' &amp;', '&')
-                message_string = class_str +': ' + class_name + \
-                    '\nCredit hours: ' + crh + \
-                    '\nAverage GPA: ' + gpa + \
-                    '\nStatus: ' + status + \
-                    '\n> ' + desc
-                await message.channel.send(message_string)
-                message_string = ''
+                message_str = Class(class_str, class_name, crh, gpa, status, desc)
+
+                # message_string = class_str +': ' + class_name + \
+                #     '\nCredit hours: ' + crh + \
+                #     '\nAverage GPA: ' + gpa + \
+                #     '\nStatus: ' + status + \
+                #     '\n> ' + desc
+                await message.channel.send(embed=message_str.get_embed())
+                # message_string = ''
 
 
     await bot.process_commands(message)
 
-
-# Feature added for fun
-# @bot.command(name='8ball')
-# async def await_8ball(ctx, arg):
-#     #msg = msg.split(' ', 1)[1]
-#     responses = ['It is certain.',
-#                  'It is decidedly so.',
-#                  'Without a doubt.',
-#                  'Yes - definitely.',
-#                  'You may rely on it.',
-#                  'As I see it, yes.',
-#                  'Most likely.',
-#                  'Outlook good.',
-#                  'Yes.',
-#                  'Signs point to yes.',
-#                  'Reply hazy, try again.',
-#                  'Ask again later.',
-#                  'Better not tell you now.',
-#                  'Cannot predict now.',
-#                  'Concentrate and ask again.',
-#                  "Don't count on it.",
-#                  'My reply is no.',
-#                  'My sources say no.',
-#                  'Outlook not so good',
-#                  'Very doubtful']
-
-#     await ctx.send(f'Question: {arg}\nAnswer: {random.choice(responses)}')
-
-
-
 bot.run(TOKEN.strip())
-
-
-# \[[A-Za-z]{2,4}\s?(\d{3})\]
