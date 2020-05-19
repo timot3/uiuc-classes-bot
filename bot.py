@@ -13,7 +13,41 @@ TOKEN = ''
 with open('config.txt', 'r') as f:
     TOKEN = f.readline()
 
-# load_dotenv()
+class Class:
+    def __init__(self):
+        # self.class_name = ''
+        self.title = ''
+        self.url = 'https://courses.illinois.edu/schedule/terms/'
+        self.crh = ''
+        self.gpa = ''
+        self.desc = ''
+        self.status = ''
+
+
+    def __init__(self, name, title, crh, gpa, status, desc):
+
+        self.class_name = name
+        self.title = name +': ' + title
+        dept, num = self.__get_class(name)
+        self.url = 'https://courses.illinois.edu/schedule/terms/' + dept + '/' + num
+        self.crh = crh
+        self.gpa = gpa
+        self.desc = desc
+        self.status = status
+
+    def get_embed(self):
+        colors = [0x12294b, 0xe84b38, 0xffffff]
+        embed = discord.Embed(title=self.title, description=self.desc, url=self.url, color=random.choice(colors))
+        embed.add_field(name='Credit Hours', value=self.crh, inline=False)
+        embed.add_field(name='Average GPA', value=self.gpa, inline=False)
+        embed.add_field(name='Status', value=self.status, inline=False)
+        return embed
+    
+    def __get_class(self, str):
+        temp = re.findall('([A-Za-z]{2,4})\s?(\d{3})', str)
+        return temp[0][0], temp[0][1]
+
+
 
 classes_offered = pd.read_csv('data/classes-fa-sp-2020.csv')
 classes_offered['Class'] = classes_offered['Subject'] + \
@@ -24,7 +58,6 @@ class_gpa = pd.read_csv('data/uiuc-gpa-dataset.csv')
 
 class_gpa['Class'] = class_gpa['Subject'] + class_gpa['Number'].astype(str)
 
-# print(classes_offered.head())
 
 bot = commands.Bot(command_prefix='$')
 
@@ -46,20 +79,26 @@ def get_recent_average_gpa(course):
     df["Average GPA"] = df["Sum GPA"] / df["Count GPA"]
     return df["Average GPA"].values[0]
 
+# What to do when bot is online: set status
 @bot.event
 async def on_ready():
-    print("logged in as: " + bot.user.name + '\n')
+    print('Bot online.')
+    print("Name: {}".format(bot.user.name))
+    print("ID: {}".format(bot.user.id))
     await bot.change_presence(activity=discord.Game(name="ex: [CS 225]"))
 
 
+#parse every message
 @bot.event
 async def on_message(message):
     channel = message.channel
+    #Make sure the bot does not respond to its own messages.
     if message.author == bot.user:
         return
-    classes = re.findall(
-        '\\\\?\[([A-Za-z]{2,4})\s?(\d{3})\\\\?\]', message.content)
-    #print (classes[0])
+
+    # Find all classes in an input string.
+    classes = re.findall('\\\\?\[([A-Za-z]{2,4})\s?(\d{3})\\\\?\]', message.content)
+    # If classes found
     if (len(classes) > 0):
         #msg = []
         # await message.channel.send(classes)
@@ -105,78 +144,55 @@ async def on_message(message):
                     #print (class_info)
                     status = "Most recently offered in: "+most_recent_term
                     # build & send message on Discord
-                    message_string = class_str +': ' + class_name + \
-                        '\nCredit hours: ' + crh + \
-                        '\nAverage GPA: N/A' + \
-                        '\nStatus: ' + status + \
-                        '\n> ' + desc
-                    await message.channel.send(message_string)
+                    # message_string = class_str +': ' + class_name + \
+                    #     '\nCredit hours: ' + crh + \
+                    #     '\nAverage GPA: N/A' + \
+                    #     '\nStatus: ' + status + \
+                    #     '\n> ' + desc
+                    message_str = Class(class_str, class_name, crh, 'No data.', status, desc)
+
+                    await message.channel.send(embed=message_str.get_embed())
                     message_string = ''
                 else:
                     # if page not in course explorer, send the sad msg :(
-                    await message.channel.send(class_str + ': Could not find this class. It is likely not offered in FA 2020.\n')
+                    await message.channel.send(class_str + ': Could not find this class.\n')
             else:
-                print('responded to: ' + class_str + ' in channel: ' + message.channel.name)
-                class_name = line['Name'].iloc[0].replace('&amp;', '&')
+                # Debugging help
+                # print('responded to: ' + class_str + ' in channel: ' + message.channel.name)
+
+                # Get information about a class.
+                class_name = line['Name'].iloc[0].replace('&amp;', '&') # fix issues with the ampersand
                 line = line.loc[classes_offered['Class'] == class_str]
                 crh = line['Credit Hours'].iloc[0]
                 status = line['YearTerm'].iloc[0].strip()
+                desc = (line.iloc[0]['Description']).replace(' &amp;', '&')
 
                 if status == '2020-fa':
-                    status = 'Offered in FA-2020.'
+                    status = 'Offered in fa-2020.'
                 else:
-                    status = 'Likely not offered in FA-2020.'
-
+                    status = 'Offered in sp-2020. May be offered in fa-2020.'
 
                 gpa = get_recent_average_gpa(class_str)
                 if gpa is None:
-                    gpa = 'Not enough data.'
+                    gpa = 'No data.'
                 else:
                     gpa = str(round(gpa, 2))
 
-                desc = (line.iloc[0]['Description']).replace(' &amp;', '&')
-                message_string = class_str +': ' + class_name + \
-                    '\nCredit hours: ' + crh + \
-                    '\nAverage GPA: ' + gpa + \
-                    '\nStatus: ' + status + \
-                    '\n> ' + desc
-                await message.channel.send(message_string)
-                message_string = ''
+                # Make a Class object with all information about the class.
+                message_str = Class(class_str, class_name, crh, gpa, status, desc)
+
+                # message_string = class_str +': ' + class_name + \
+                #     '\nCredit hours: ' + crh + \
+                #     '\nAverage GPA: ' + gpa + \
+                #     '\nStatus: ' + status + \
+                #     '\n> ' + desc
+
+                # send embed in channel
+                await message.channel.send(embed=message_str.get_embed())
+                # message_string = ''
 
 
     await bot.process_commands(message)
 
-
-# Feature added for fun
-# @bot.command(name='8ball')
-# async def await_8ball(ctx, arg):
-#     #msg = msg.split(' ', 1)[1]
-#     responses = ['It is certain.',
-#                  'It is decidedly so.',
-#                  'Without a doubt.',
-#                  'Yes - definitely.',
-#                  'You may rely on it.',
-#                  'As I see it, yes.',
-#                  'Most likely.',
-#                  'Outlook good.',
-#                  'Yes.',
-#                  'Signs point to yes.',
-#                  'Reply hazy, try again.',
-#                  'Ask again later.',
-#                  'Better not tell you now.',
-#                  'Cannot predict now.',
-#                  'Concentrate and ask again.',
-#                  "Don't count on it.",
-#                  'My reply is no.',
-#                  'My sources say no.',
-#                  'Outlook not so good',
-#                  'Very doubtful']
-
-#     await ctx.send(f'Question: {arg}\nAnswer: {random.choice(responses)}')
-
-
-
+#Run the bot.
 bot.run(TOKEN.strip())
-
-
-# \[[A-Za-z]{2,4}\s?(\d{3})\]
