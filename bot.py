@@ -137,9 +137,19 @@ async def on_message(message):
                     course_page = requests.get("https://courses.illinois.edu/schedule/"+term[1]+"/"+term[0]+"/"+course[0].upper()+"/"+course[1])
                     new_soup = BeautifulSoup(course_page.content, 'html.parser')
                     class_name = new_soup.find("span", class_="app-label app-text-engage").contents[0]
+
+                    # May encounter errors with upper level classes 
+                    # Loop through parts 3 and 5 of col-sm-12 to hopefully
+                    # Find a non-empty p tag
                     class_info = new_soup.find_all("div", class_="col-sm-12")[3].find_all("p")
+
+                    if len(class_info) == 0:
+                        #print(new_soup.find_all("div", class_="col-sm-12")[4].find_all('p'))
+
+                        class_info = new_soup.find_all("div", class_="col-sm-12")[4].find_all("p")
+
                     crh = class_info[0].contents[1]
-                    desc = class_info[1].contents[0]
+                    desc = class_info[2].contents[0]
                     #print (class_info[2])
                     #print (class_info)
                     status = "Most recently offered in: "+most_recent_term
