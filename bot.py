@@ -149,7 +149,14 @@ async def on_message(message):
                         class_info = new_soup.find_all("div", class_="col-sm-12")[4].find_all("p")
 
                     crh = class_info[0].contents[1]
-                    desc = class_info[2].contents[0]
+
+                    desc = ''
+                    if len(class_info[1].contents) == 0:
+                        desc = class_info[2].contents[0]
+                    else:
+                        desc = class_info[1].contents[0]
+
+                    
                     #print (class_info[2])
                     #print (class_info)
                     status = "Most recently offered in: "+most_recent_term
