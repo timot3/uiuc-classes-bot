@@ -1,4 +1,4 @@
-#from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from discord.ext import commands
 import discord
 import re
@@ -9,9 +9,9 @@ from bs4 import BeautifulSoup
 
 TOKEN = ''
 
-
 with open('config.txt', 'r') as f:
-    TOKEN = f.readline()
+    TOKEN = f.readline().strip()
+
 
 class Class:
     def __init__(self):
@@ -23,11 +23,9 @@ class Class:
         self.desc = ''
         self.status = ''
 
-
     def __init__(self, name, title, crh, gpa, status, desc):
-
         self.class_name = name
-        self.title = name +': ' + title
+        self.title = name + ': ' + title
         dept, num = self.__get_class(name)
         self.url = 'https://courses.illinois.edu/schedule/terms/' + dept + '/' + num
         self.crh = crh
@@ -42,24 +40,20 @@ class Class:
         embed.add_field(name='Average GPA', value=self.gpa, inline=False)
         embed.add_field(name='Status', value=self.status, inline=False)
         return embed
-    
+
     def __get_class(self, str):
         temp = re.findall('([A-Za-z]{2,4})\s?(\d{3})', str)
         return temp[0][0], temp[0][1]
 
 
-
 classes_offered = pd.read_csv('data/classes-fa-sp-2020.csv')
-classes_offered['Class'] = classes_offered['Subject'] + \
-    classes_offered['Number'].astype(str)
-
+classes_offered['Class'] = classes_offered['Subject'] + classes_offered['Number'].astype(str)
 
 class_gpa = pd.read_csv('data/uiuc-gpa-dataset.csv')
 
 class_gpa['Class'] = class_gpa['Subject'] + class_gpa['Number'].astype(str)
 
-
-bot = commands.Bot(command_prefix='$')
+bot = commands.Bot(command_prefix='[')
 
 
 # Taken from Prof. Wade's reddit-uiuc-bot.
@@ -70,14 +64,15 @@ def get_recent_average_gpa(course):
         return None
 
     df["Count GPA"] = df["A+"] + df["A"] + df["A-"] + df["B+"] + df["B"] + df["B-"] + \
-        df["C+"] + df["C"] + df["C-"] + df["D+"] + df["D"] + df["D-"] + df["W"]
+                      df["C+"] + df["C"] + df["C-"] + df["D+"] + df["D"] + df["D-"] + df["W"]
     df["Sum GPA"] = (4 * (df["A+"] + df["A"])) + (3.67 * df["A-"]) + \
-        (3.33 * df["B+"]) + (3 * df["B"]) + (2.67 * df["B-"]) + \
-        (2.33 * df["C+"]) + (2 * df["C"]) + (1.67 * df["C-"]) + \
-        (1.33 * df["D+"]) + (1 * df["D"]) + (0.67 * df["D-"])
+                    (3.33 * df["B+"]) + (3 * df["B"]) + (2.67 * df["B-"]) + \
+                    (2.33 * df["C+"]) + (2 * df["C"]) + (1.67 * df["C-"]) + \
+                    (1.33 * df["D+"]) + (1 * df["D"]) + (0.67 * df["D-"])
 
     df["Average GPA"] = df["Sum GPA"] / df["Count GPA"]
     return df["Average GPA"].values[0]
+
 
 # What to do when bot is online: set status
 @bot.event
@@ -85,44 +80,61 @@ async def on_ready():
     print('Bot online.')
     print("Name: {}".format(bot.user.name))
     print("ID: {}".format(bot.user.id))
-    await bot.change_presence(activity=discord.Game(name="ex: [CS 225]"))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='[info'))
 
 
-#parse every message
+def get_geneds(geneds):
+    acp_aliases = ['advanced composition', 'adv comp', 'acp']
+    wes_aliases = ['western', 'west', 'wes']
+    nws_aliases = ['nonwestern', 'non western', 'nws', 'nonwest']
+    usm_aliases = ['usm', 'us minorities', 'minority', 'us minority', 'us']
+    hum_aliases = ['humanities', 'hum', 'human', 'arts']
+    nst_aliases = ['natsci', 'natural science', 'nst']
+    qre_aliases = ['quantitative reasoning', 'qre']
+    sbs_aliases = ['social', 'behavioral', 'sbs']
+
+
+# Parse every message
 @bot.event
 async def on_message(message):
     channel = message.channel
-    #Make sure the bot does not respond to its own messages.
+    # Make sure the bot does not respond to its own messages.
     if message.author == bot.user:
+        return
+    # Find gened requirements
+    geneds = re.findall('\[(\D*?)\]', message.content)
+    if len(geneds) > 0:
+        get_geneds(geneds)
         return
 
     # Find all classes in an input string.
     classes = re.findall('\\\\?\[([A-Za-z]{2,4})\s?(\d{3})\\\\?\]', message.content)
     # If classes found
-    if (len(classes) > 0):
-        #msg = []
-        # await message.channel.send(classes)
+    if len(classes) > 0:
+        # Iterate through the courses
         for course in classes:
-            # msg.append('Class:' + )
             class_str = course[0].upper() + course[1]
-            #line = classes_offered.loc[classes_offered['Subject']== course[0].upper()]
             line = classes_offered.loc[classes_offered['Class'] == class_str]
-            
+
             if len(line) == 0:
                 # check if page exists in course explorer
                 course_page_exists = True
                 course_explorer_online = False
                 # verify course explorer website is online
-                if requests.get("https://courses.illinois.edu/schedule/terms/"+course[0].upper()+"/"+course[1]).status_code == 200:
+                if requests.get("https://courses.illinois.edu/schedule/terms/" + course[0].upper() + "/" + course[
+                    1]).status_code == 200:
                     course_explorer_online = True
                     # verify course is a real class
-                    soup = BeautifulSoup(requests.get("https://courses.illinois.edu/schedule/terms/"+course[0].upper()+"/"+course[1]).content, 'html.parser')
+                    soup = BeautifulSoup(requests.get(
+                        "https://courses.illinois.edu/schedule/terms/" + course[0].upper() + "/" + course[1]).content,
+                                         'html.parser')
                     if "404" in soup.text:
                         course_page_exists = False
                 # if course page exists, fetch class data
                 if course_page_exists and course_explorer_online:
                     # get page & parse w BS4
-                    page = requests.get("https://courses.illinois.edu/schedule/terms/"+course[0].upper()+"/"+course[1])
+                    page = requests.get(
+                        "https://courses.illinois.edu/schedule/terms/" + course[0].upper() + "/" + course[1])
                     soup = BeautifulSoup(page.content, 'html.parser')
                     all_a_tags = soup.find_all('a')
                     # get all terms that the class has been offered
@@ -134,7 +146,9 @@ async def on_message(message):
                     # get other class data (i.e. description, credit hours, full name)
                     most_recent_term = terms_offered[0]
                     term = most_recent_term.split()
-                    course_page = requests.get("https://courses.illinois.edu/schedule/"+term[1]+"/"+term[0]+"/"+course[0].upper()+"/"+course[1])
+                    course_page = requests.get(
+                        "https://courses.illinois.edu/schedule/" + term[1] + "/" + term[0] + "/" + course[
+                            0].upper() + "/" + course[1])
                     new_soup = BeautifulSoup(course_page.content, 'html.parser')
                     class_name = new_soup.find("span", class_="app-label app-text-engage").contents[0]
 
@@ -144,8 +158,6 @@ async def on_message(message):
                     class_info = new_soup.find_all("div", class_="col-sm-12")[3].find_all("p")
 
                     if len(class_info) == 0:
-                        #print(new_soup.find_all("div", class_="col-sm-12")[4].find_all('p'))
-
                         class_info = new_soup.find_all("div", class_="col-sm-12")[4].find_all("p")
 
                     crh = class_info[0].contents[1]
@@ -156,16 +168,7 @@ async def on_message(message):
                     else:
                         desc = class_info[1].contents[0]
 
-                    
-                    #print (class_info[2])
-                    #print (class_info)
-                    status = "Most recently offered in: "+most_recent_term
-                    # build & send message on Discord
-                    # message_string = class_str +': ' + class_name + \
-                    #     '\nCredit hours: ' + crh + \
-                    #     '\nAverage GPA: N/A' + \
-                    #     '\nStatus: ' + status + \
-                    #     '\n> ' + desc
+                    status = "Most recently offered in: " + most_recent_term
                     message_str = Class(class_str, class_name, crh, 'No data.', status, desc)
 
                     await message.channel.send(embed=message_str.get_embed())
@@ -174,11 +177,8 @@ async def on_message(message):
                     # if page not in course explorer, send the sad msg :(
                     await message.channel.send(class_str + ': Could not find this class.\n')
             else:
-                # Debugging help
-                # print('responded to: ' + class_str + ' in channel: ' + message.channel.name)
-
                 # Get information about a class.
-                class_name = line['Name'].iloc[0].replace('&amp;', '&') # fix issues with the ampersand
+                class_name = line['Name'].iloc[0].replace('&amp;', '&')  # fix issues with the ampersand
                 line = line.loc[classes_offered['Class'] == class_str]
                 crh = line['Credit Hours'].iloc[0]
                 status = line['YearTerm'].iloc[0].strip()
@@ -197,19 +197,19 @@ async def on_message(message):
 
                 # Make a Class object with all information about the class.
                 message_str = Class(class_str, class_name, crh, gpa, status, desc)
-
-                # message_string = class_str +': ' + class_name + \
-                #     '\nCredit hours: ' + crh + \
-                #     '\nAverage GPA: ' + gpa + \
-                #     '\nStatus: ' + status + \
-                #     '\n> ' + desc
-
                 # send embed in channel
                 await message.channel.send(embed=message_str.get_embed())
-                # message_string = ''
-
 
     await bot.process_commands(message)
 
-#Run the bot.
-bot.run(TOKEN.strip())
+
+@bot.command(name='info')
+async def info(ctx):
+    desc = 'To get a class, do [`department` `number`]. For example: `[cs 225]`. This is case insensitive'
+    embed = discord.Embed(title='Help', description=desc)
+    embed.add_field(name='API Latency', value=str(round(bot.latency, 2))+'s')
+    embed.add_field(name='Contribute', value='https://github.com/timot3/uiuc-classes-bot/')
+    await ctx.send(embed=embed)
+
+# Run the bot.
+bot.run(TOKEN)

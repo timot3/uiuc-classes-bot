@@ -1,3 +1,4 @@
 config.txt
 ubuntu-ec2.pem
 merge-classes.ipynb
+venv/
