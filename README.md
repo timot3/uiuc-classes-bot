@@ -1,4 +1,4 @@
-# UIUC Discord Classes Bot
+# A Discord Bot for UIUC Classes
 Inspired by [Professor Wade Fagen-Ulmschneider's Reddit bot](https://github.com/illinois/reddit-uiuc-bot/)
 
 To request a class, first add this bot to your discord server:
