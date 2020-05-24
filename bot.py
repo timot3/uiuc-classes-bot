@@ -55,7 +55,7 @@ class_gpa = pd.read_csv('data/uiuc-gpa-dataset.csv')
 
 class_gpa['Class'] = class_gpa['Subject'] + class_gpa['Number'].astype(str)
 
-bot = commands.Bot(command_prefix='classbot')
+bot = commands.Bot(command_prefix='classbot ')
 
 
 # Taken from Prof. Wade's reddit-uiuc-bot.
