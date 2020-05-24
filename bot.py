@@ -234,4 +234,4 @@ async def info(ctx):
     await ctx.send(embed=embed)
 
 # Run the bot.
-bot.run('NjA4ODk4NDkwNjU0OTE2NjA4.XsoZHg.W-jujOLCfwNtOq8jt507evYdOTg')
+bot.run(TOKEN.strip())
