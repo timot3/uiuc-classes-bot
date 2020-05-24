@@ -21,9 +21,10 @@ class Class:
         self.crh = ''
         self.gpa = ''
         self.desc = ''
+        self.deg_attr = ''
         self.status = ''
 
-    def __init__(self, name, title, crh, gpa, status, desc):
+    def __init__(self, name, title, crh, gpa, status, deg_attr,desc):
         self.class_name = name
         self.title = name + ': ' + title
         dept, num = self.__get_class(name)
@@ -31,6 +32,7 @@ class Class:
         self.crh = crh
         self.gpa = gpa
         self.desc = desc
+        self.deg_attr = deg_attr
         self.status = status
 
     def get_embed(self):
@@ -53,7 +55,7 @@ class_gpa = pd.read_csv('data/uiuc-gpa-dataset.csv')
 
 class_gpa['Class'] = class_gpa['Subject'] + class_gpa['Number'].astype(str)
 
-bot = commands.Bot(command_prefix='[')
+bot = commands.Bot(command_prefix='classbot')
 
 
 # Taken from Prof. Wade's reddit-uiuc-bot.
@@ -80,7 +82,7 @@ async def on_ready():
     print('Bot online.')
     print("Name: {}".format(bot.user.name))
     print("ID: {}".format(bot.user.id))
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='[info'))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='classbot info'))
 
 
 def get_geneds(geneds):
@@ -108,9 +110,25 @@ async def on_message(message):
         return
 
     # Find all classes in an input string.
-    classes = re.findall('\\\\?\[([A-Za-z]{2,4})\s?(\d{3})\\\\?\]', message.content)
+    potential_message = '[' and ']' in message.content
+    classes = []
+    if potential_message:
+        # Search for quotes in the message
+        msg = message.content.split('\n')
+        # All quotes start with '> ' and end with new line
+        msg = [x for x in msg if not x.startswith('> ')]
+
+        if len(msg) > 0:
+            # Remake the message but without the quote part.
+            msg = ''.join(x for x in msg)
+            # print(msg)
+            # Parse the message.
+            classes = re.findall('\\\\?\[([A-Za-z]{2,4})\s?(\d{3})\\\\?\]', msg)
+
+    # Find all classes in an input string.
+    # classes = re.findall('\\\\?\[([A-Za-z]{2,4})\s?(\d{3})\\\\?\]', message.content)
     # If classes found
-    if len(classes) > 0:
+    if len(classes) > 0 and potential_message:
         # Iterate through the courses
         for course in classes:
             class_str = course[0].upper() + course[1]
@@ -169,7 +187,7 @@ async def on_message(message):
                         desc = class_info[1].contents[0]
 
                     status = "Most recently offered in: " + most_recent_term
-                    message_str = Class(class_str, class_name, crh, 'No data.', status, desc)
+                    message_str = Class(class_str, class_name, crh, 'No data.', '',status, desc)
 
                     await message.channel.send(embed=message_str.get_embed())
                     message_string = ''
@@ -196,7 +214,7 @@ async def on_message(message):
                     gpa = str(round(gpa, 2))
 
                 # Make a Class object with all information about the class.
-                message_str = Class(class_str, class_name, crh, gpa, status, desc)
+                message_str = Class(class_str, class_name, crh, gpa, status, '', desc)
                 # send embed in channel
                 await message.channel.send(embed=message_str.get_embed())
 
@@ -207,7 +225,7 @@ async def on_message(message):
 async def info(ctx):
     desc = 'To get a class, do [`department` `number`]. For example: `[cs 225]`. This is case insensitive'
     embed = discord.Embed(title='Help', description=desc)
-    embed.add_field(name='API Latency', value=str(round(bot.latency, 2))+'s')
+    embed.add_field(name='API Latency', value=str(round(bot.latency * 1000, 2))+'ms')
     embed.add_field(name='Contribute', value='https://github.com/timot3/uiuc-classes-bot/')
     await ctx.send(embed=embed)
 
