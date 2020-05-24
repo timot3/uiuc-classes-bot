@@ -121,9 +121,12 @@ async def on_message(message):
         if len(msg) > 0:
             # Remake the message but without the quote part.
             msg = ''.join(x for x in msg)
+            msg = msg.upper()
             # print(msg)
             # Parse the message.
             classes = re.findall('\\\\?\[([A-Za-z]{2,4})\s?(\d{3})\\\\?\]', msg)
+
+            classes = list(set(classes))
 
     # Find all classes in an input string.
     # classes = re.findall('\\\\?\[([A-Za-z]{2,4})\s?(\d{3})\\\\?\]', message.content)
@@ -223,11 +226,12 @@ async def on_message(message):
 
 @bot.command(name='info')
 async def info(ctx):
-    desc = 'To get a class, do [`department` `number`]. For example: `[cs 225]`. This is case insensitive'
+    desc = 'To get a class, do [`department` `number`]. For example: `[cs 225]`. This is case insensitive, ' \
+           'and the space between the department and the class number is optional. '
     embed = discord.Embed(title='Help', description=desc)
     embed.add_field(name='API Latency', value=str(round(bot.latency * 1000, 2))+'ms')
     embed.add_field(name='Contribute', value='https://github.com/timot3/uiuc-classes-bot/')
     await ctx.send(embed=embed)
 
 # Run the bot.
-bot.run(TOKEN)
+bot.run('NjA4ODk4NDkwNjU0OTE2NjA4.XsoZHg.W-jujOLCfwNtOq8jt507evYdOTg')
