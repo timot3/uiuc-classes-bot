@@ -55,7 +55,7 @@ class_gpa = pd.read_csv('data/uiuc-gpa-dataset.csv')
 
 class_gpa['Class'] = class_gpa['Subject'] + class_gpa['Number'].astype(str)
 
-bot = commands.Bot(command_prefix='classbot ')
+bot = commands.Bot(command_prefix=('classbot ', 'Classbot '), case_insensitive=True, help_command=None)
 
 
 # Taken from Prof. Wade's reddit-uiuc-bot.
@@ -224,7 +224,7 @@ async def on_message(message):
     await bot.process_commands(message)
 
 
-@bot.command(name='info')
+@bot.command(name='info',aliases=['help'])
 async def info(ctx):
     desc = 'To get a class, do [`department` `number`]. For example: `[cs 225]`. This is case insensitive, ' \
            'and the space between the department and the class number is optional. '
@@ -234,4 +234,4 @@ async def info(ctx):
     await ctx.send(embed=embed)
 
 # Run the bot.
-bot.run(TOKEN.strip())
+bot.run('NjA4ODk4NDkwNjU0OTE2NjA4.Xswz2A.7oFtecW_5_gLhu36_eD6xILgIco')
