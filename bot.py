@@ -36,6 +36,7 @@ async def on_message(message):
     #     return
 
     # Find all classes in an input string.
+    # TODO Move string parsing to helepr function
     potential_message = '[' and ']' in message.content
     classes = []
     if potential_message:
@@ -52,7 +53,7 @@ async def on_message(message):
             classes = list(set(re.findall('\\\\?\[([A-Za-z]{2,4})\s?(\d{3})\\\\?\]', msg)))
 
     # Find all classes in an input string.
-    if len(classes) > 0 and potential_message:
+    if len(classes) > 0:
         # Iterate through the courses
         for course in classes:
             await send_class(message.channel, course)

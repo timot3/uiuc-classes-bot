@@ -3,7 +3,7 @@ import re
 import random
 
 
-class Class:
+class Course:
 
     def __init__(self, name, title, crh, gpa, status, deg_attr,desc):
         self.class_name = name
@@ -30,6 +30,9 @@ class Class:
 
         return embed
 
+    # Function to get department and class number.
     def __get_class(self, str):
+        # Group 1:([A-Za-z]{2,4})
+        # Group 2:(\d{3})
         temp = re.findall('([A-Za-z]{2,4})\s?(\d{3})', str)
         return temp[0][0], temp[0][1]

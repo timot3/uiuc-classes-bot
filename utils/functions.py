@@ -1,5 +1,5 @@
 import pandas as pd
-from utils.Class import Class
+from utils.Course import Course
 import requests
 import discord
 from bs4 import BeautifulSoup
@@ -28,7 +28,9 @@ def get_recent_average_gpa(class_gpa, course):
     return df["Average GPA"].values[0]
 
 
-# def get_geneds(geneds):
+# TODO
+def get_geneds(geneds):
+    pass
 #     acp_aliases = ['advanced composition', 'adv comp', 'acp']
 #     wes_aliases = ['western', 'west', 'wes']
 #     nws_aliases = ['nonwestern', 'non western', 'nws', 'nonwest']
@@ -40,24 +42,25 @@ def get_recent_average_gpa(class_gpa, course):
 
 
 async def send_class(channel, course):
+    # TODO Add comment about meaning of course
     class_str = course[0].upper() + course[1]
     line = classes_offered.loc[classes_offered['Class'] == class_str]
 
     if len(line) == 0:
         # check if page exists in course explorer
-        course_page_exists = True
-        course_explorer_online = False
+        does_course_page_exist = True
+        is_course_explorer_online = False
         # verify course explorer website is online
         if requests.get("https://courses.illinois.edu/schedule/terms/" + course[0].upper() + "/" + course[1]).status_code == 200:
-            course_explorer_online = True
+            is_course_explorer_online = True
             # verify course is a real class
             soup = BeautifulSoup(requests.get(
                 "https://courses.illinois.edu/schedule/terms/" + course[0].upper() + "/" + course[1]).content,
                                  'html.parser')
             if "404" in soup.text:
-                course_page_exists = False
+                does_course_page_exist = False
         # if course page exists, fetch class data
-        if course_page_exists and course_explorer_online:
+        if does_course_page_exist and is_course_explorer_online:
             # get page & parse w BS4
             page = requests.get(
                 "https://courses.illinois.edu/schedule/terms/" + course[0].upper() + "/" + course[1])
@@ -96,7 +99,7 @@ async def send_class(channel, course):
 
             desc = str(desc).strip()
             status = "Most recently offered in: " + most_recent_term
-            message_str = Class(name=class_str, title=class_name, crh=crh, gpa='No data.', status=status, deg_attr='', desc=desc)
+            message_str = Course(name=class_str, title=class_name, crh=crh, gpa='No data.', status=status, deg_attr='', desc=desc)
             await channel.send(embed=message_str.get_embed())
         else:
             # if page not in course explorer, send the sad msg :(
@@ -122,7 +125,7 @@ async def send_class(channel, course):
             gpa = str(round(gpa, 2))
 
         # Make a Class object with all information about the class.
-        message_str = Class(class_str, class_name, crh, gpa, status, '', desc)
+        message_str = Course(class_str, class_name, crh, gpa, status, '', desc)
         # send embed in channel
         await channel.send(embed=message_str.get_embed())
 
