@@ -1,4 +1,4 @@
 config.txt
-ubuntu-ec2.pem
+ec2-key.pem
 merge-classes.ipynb
 venv/
