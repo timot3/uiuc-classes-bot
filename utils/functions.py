@@ -1,6 +1,7 @@
 import pandas as pd
 from utils.Class import Class
 import requests
+import discord
 from bs4 import BeautifulSoup
 
 classes_offered = pd.read_csv('data/classes-fa-sp-2020.csv')
@@ -93,13 +94,14 @@ async def send_class(channel, course):
             else:
                 desc = class_info[1].contents[0]
 
+            desc = str(desc).strip()
             status = "Most recently offered in: " + most_recent_term
-            message_str = Class(class_str, class_name, crh, 'No data.', '', status, desc)
-
+            message_str = Class(name=class_str, title=class_name, crh=crh, gpa='No data.', status=status, deg_attr='', desc=desc)
             await channel.send(embed=message_str.get_embed())
         else:
             # if page not in course explorer, send the sad msg :(
             await channel.send(class_str + ': Could not find this class.\n')
+
     else:
         # Get information about a class.
         class_name = line['Name'].iloc[0].replace('&amp;', '&')  # fix issues with the ampersand
