@@ -26,7 +26,7 @@ async def on_ready():
 @bot.event
 async def on_message(message):
     # Make sure the bot does not respond to its own messages.
-    if message.author == bot.user:
+    if message.author.bot:
         return
 
     # TODO: Find gened requirements
@@ -53,8 +53,10 @@ async def on_message(message):
             classes = list(set(re.findall('\\\\?\[([A-Za-z]{2,4})\s?(\d{3})\\\\?\]', msg)))
 
     # Find all classes in an input string.
-    if len(classes) > 0:
+    if len(classes) > 6:
+        await message.channel.send("To reduce spam, please limit your message to 6 or less classes.")
         # Iterate through the courses
+    elif len(classes) > 0:
         for course in classes:
             await send_class(message.channel, course)
 
