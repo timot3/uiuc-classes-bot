@@ -93,9 +93,9 @@ async def send_class(channel, course):
 
             desc = ''
             if len(class_info[1].contents) == 0:
-                desc = class_info[2].contents[0]
+                desc = class_info[2].get_text()
             else:
-                desc = class_info[1].contents[0]
+                desc = class_info[1].get_text()
 
             desc = str(desc).strip()
             status = "Most recently offered in: " + most_recent_term
