@@ -71,7 +71,7 @@ async def await_info(ctx):
     embed = discord.Embed(title='Help', description=desc, url='https://github.com/timot3/uiuc-classes-bot/')
     embed.add_field(name='AP Classes', value='classbot AP to get a link to the UIUC AP credit page')
     embed.add_field(name='API Latency', value=str(round(bot.latency * 1000, 1))+'ms')
-    # embed.set_footer(text='Having issues with the bot? [Make an issue here](https://github.com/timot3/uiuc-classes-bot/) or send a DM to @10x engineer#9075')
+    embed.set_footer(text='Having issues with the bot? Send a DM to @10x engineer#9075')
     await ctx.send(embed=embed)
 
 

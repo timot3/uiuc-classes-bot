@@ -27,6 +27,7 @@ class Course:
         # print(self.gpa)
         embed.add_field(name='Status', value=self.status, inline=False)
         # print(repr(self.status))
+        embed.set_footer(text='Issues? Try `classbot help`')
 
         return embed
 
