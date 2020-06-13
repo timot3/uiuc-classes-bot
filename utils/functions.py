@@ -84,11 +84,16 @@ async def send_class(channel, course):
             # May encounter errors with upper level classes
             # Loop through parts 3 and 5 of col-sm-12 to hopefully
             # Find a non-empty p tag
-            class_info = new_soup.find_all("div", class_="col-sm-12")[3].find_all("p")
+            class_info = new_soup.find_all("div", class_="col-sm-12")[3]
 
             if len(class_info) == 0:
-                class_info = new_soup.find_all("div", class_="col-sm-12")[4].find_all("p")
+                class_info = new_soup.find_all("div", class_="col-sm-12")[4]
 
+            deg_attr = class_info.find_all('li')
+            # print(deg_attr)
+
+            deg_attr = ',\n'.join([x.getText() for x in deg_attr])
+            class_info = class_info.find_all('p')
             crh = class_info[0].contents[1]
 
             desc = ''
@@ -99,7 +104,7 @@ async def send_class(channel, course):
 
             desc = str(desc).strip()
             status = "Most recently offered in: " + most_recent_term
-            message_str = Course(name=class_str, title=class_name, crh=crh, gpa='No data.', status=status, deg_attr='', desc=desc)
+            message_str = Course(name=class_str, title=class_name, crh=crh, gpa='No data.', status=status, deg_attr=deg_attr, desc=desc)
             await channel.send(embed=message_str.get_embed())
         else:
             # if page not in course explorer, send the sad msg :(
@@ -112,7 +117,16 @@ async def send_class(channel, course):
         crh = line['Credit Hours'].iloc[0]
         status = line['YearTerm'].iloc[0].strip()
         desc = (line.iloc[0]['Description']).replace(' &amp;', '&')
+        deg_attr = line['Degree Attributes'].iloc[0]
+        # print(deg_attr)
 
+        if isinstance(deg_attr, str):
+            deg_attr = deg_attr.strip()
+            deg_attr = deg_attr.replace('and ', '\n').replace('course', '').replace('.', '')
+        else:
+            deg_attr = ''
+
+        # print('new: ' + deg_attr)
         if status == '2020-fa':
             status = 'Offered in fa-2020.'
         else:
@@ -125,7 +139,7 @@ async def send_class(channel, course):
             gpa = str(round(gpa, 2))
 
         # Make a Class object with all information about the class.
-        message_str = Course(class_str, class_name, crh, gpa, status, '', desc)
+        message_str = Course(class_str, class_name, crh, gpa, status, deg_attr, desc)
         # send embed in channel
         await channel.send(embed=message_str.get_embed())
 

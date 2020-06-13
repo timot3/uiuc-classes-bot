@@ -25,9 +25,14 @@ class Course:
         # print(self.crh)
         embed.add_field(name='Average GPA', value=self.gpa, inline=False)
         # print(self.gpa)
+        print(self.deg_attr)
+        if len(self.deg_attr) > 0:
+            embed.add_field(name='Degree Attributes', value=self.deg_attr, inline=False)
+
         embed.add_field(name='Status', value=self.status, inline=False)
         # print(repr(self.status))
-        embed.set_footer(text='Issues? Try `classbot help`')
+        if random.random() < 0.25:
+            embed.set_footer(text='Issues? Try `classbot help`')
 
         return embed
 
