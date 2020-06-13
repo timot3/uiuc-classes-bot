@@ -85,8 +85,7 @@ async def send_class(channel, course):
             # Loop through parts 3 and 5 of col-sm-12 to hopefully
             # Find a non-empty p tag
             class_info = new_soup.find_all("div", class_="col-sm-12")[3]
-
-            if len(class_info) == 0:
+            if len(class_info.find_all('p')) == 0:
                 class_info = new_soup.find_all("div", class_="col-sm-12")[4]
 
             deg_attr = class_info.find_all('li')
@@ -94,7 +93,7 @@ async def send_class(channel, course):
 
             deg_attr = ',\n'.join([x.getText() for x in deg_attr])
             class_info = class_info.find_all('p')
-            crh = class_info[0].contents[1]
+            crh = class_info[0].getText()
 
             desc = ''
             if len(class_info[1].contents) == 0:
