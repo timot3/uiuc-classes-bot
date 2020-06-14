@@ -32,7 +32,7 @@ class Course:
         embed.add_field(name='Status', value=self.status, inline=False)
         # print(repr(self.status))
         if random.random() < 0.25:
-            embed.set_footer(text='Issues? Try `classbot help`')
+            embed.set_footer(text='Issues? Send a DM to @10x engineer#9075')
 
         return embed
 

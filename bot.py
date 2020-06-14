@@ -8,7 +8,7 @@ TOKEN = ''
 with open('config.txt', 'r') as f:
     TOKEN = f.readline().strip()
 
-bot = commands.Bot(command_prefix=('classbot ', 'Classbot '), case_insensitive=True, help_command=None)
+bot = commands.Bot(command_prefix=('c!', 'C!'), case_insensitive=True, help_command=None)
 
 
 # What to do when bot is online
@@ -19,7 +19,7 @@ async def on_ready():
     print("Name: {}".format(bot.user.name))
     print("ID: {}".format(bot.user.id))
     # Set status
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='classbot info'))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='c!info'))
 
 
 # Parse every message
@@ -69,8 +69,10 @@ async def await_info(ctx):
     desc = 'To get a class, do [`department` `number`]. For example: `[cs 225]`. This is case insensitive, ' \
            'and the space between the department and the class number is optional. '
     embed = discord.Embed(title='Help', description=desc, url='https://github.com/timot3/uiuc-classes-bot/')
-    embed.add_field(name='AP Classes', value='classbot AP to get a link to the UIUC AP credit page')
-    embed.add_field(name='API Latency', value=str(round(bot.latency * 1000, 1))+'ms')
+    embed.add_field(name='AP - c!AP', value='Links the UIUC AP credit page')
+    embed.add_field(name='Geneds - c!Gened', value='Links the Geneds by GPA page.')
+
+    embed.add_field(name='API Latency', value=str(round(bot.latency * 1000, 1))+'ms.')
     embed.set_footer(text='Having issues with the bot? Send a DM to @10x engineer#9075')
     await ctx.send(embed=embed)
 
@@ -78,6 +80,11 @@ async def await_info(ctx):
 @bot.command(name='AP')
 async def await_ap(ctx):
     await ctx.send('https://admissions.illinois.edu/Apply/Freshman/college-credit-AP')
+
+
+@bot.command(name='geneds', aliases=['gened'])
+async def await_ap(ctx):
+    await ctx.send('http://waf.cs.illinois.edu/discovery/every_gen_ed_at_uiuc_by_gpa/')
 
 # Run the bot.
 bot.run(TOKEN.strip())
