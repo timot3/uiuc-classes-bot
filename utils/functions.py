@@ -2,16 +2,17 @@ import pandas as pd
 from utils.Course import Course
 import requests
 import discord
-from bs4 import BeautifulSoup
+import xml.etree.ElementTree as ET
+from urllib.request import urlopen
 
-classes_offered = pd.read_csv('data/classes-fa-sp-2020.csv')
+classes_offered = pd.read_csv('data/2020-fa.csv')
 classes_offered['Class'] = classes_offered['Subject'] + classes_offered['Number'].astype(str)
 class_gpa = pd.read_csv('data/uiuc-gpa-dataset.csv')
 class_gpa['Class'] = class_gpa['Subject'] + class_gpa['Number'].astype(str)
 
 
 # Taken from Prof. Wade's reddit-uiuc-bot.
-def get_recent_average_gpa(class_gpa, course):
+def get_recent_average_gpa(course):
     df = class_gpa[class_gpa["Class"] == course].groupby(
         "Class").agg("sum").reset_index()
     if len(df) == 0:
@@ -25,20 +26,12 @@ def get_recent_average_gpa(class_gpa, course):
                     (1.33 * df["D+"]) + (1 * df["D"]) + (0.67 * df["D-"])
 
     df["Average GPA"] = df["Sum GPA"] / df["Count GPA"]
-    return df["Average GPA"].values[0]
+    gpa = df["Average GPA"].values[0]
 
-
-# TODO
-def get_geneds(geneds):
-    pass
-#     acp_aliases = ['advanced composition', 'adv comp', 'acp']
-#     wes_aliases = ['western', 'west', 'wes']
-#     nws_aliases = ['nonwestern', 'non western', 'nws', 'nonwest']
-#     usm_aliases = ['usm', 'us minorities', 'minority', 'us minority', 'us']
-#     hum_aliases = ['humanities', 'hum', 'human', 'arts']
-#     nst_aliases = ['natsci', 'natural science', 'nst']
-#     qre_aliases = ['quantitative reasoning', 'qre']
-#     sbs_aliases = ['social', 'behavioral', 'sbs']
+    if gpa is None:
+        return 'No data'
+    else:
+        return str(round(gpa, 2))
 
 
 async def send_class(channel, course):
@@ -47,66 +40,31 @@ async def send_class(channel, course):
     line = classes_offered.loc[classes_offered['Class'] == class_str]
 
     if len(line) == 0:
-        # check if page exists in course explorer
-        does_course_page_exist = True
-        is_course_explorer_online = False
-        # verify course explorer website is online
-        if requests.get("https://courses.illinois.edu/schedule/terms/" + course[0].upper() + "/" + course[1]).status_code == 200:
-            is_course_explorer_online = True
-            # verify course is a real class
-            soup = BeautifulSoup(requests.get(
-                "https://courses.illinois.edu/schedule/terms/" + course[0].upper() + "/" + course[1]).content,
-                                 'html.parser')
-            if "404" in soup.text:
-                does_course_page_exist = False
-        # if course page exists, fetch class data
-        if does_course_page_exist and is_course_explorer_online:
-            # get page & parse w BS4
-            page = requests.get(
-                "https://courses.illinois.edu/schedule/terms/" + course[0].upper() + "/" + course[1])
-            soup = BeautifulSoup(page.content, 'html.parser')
-            all_a_tags = soup.find_all('a')
-            # get all terms that the class has been offered
-            terms_offered = []
-            for a in all_a_tags:
-                if "Fall" in a.contents[0] or "Spring" in a.contents[0] or "Summer" in a.contents[0]:
-                    terms_offered.append(a.contents[0].strip())
-                    break
-            # get other class data (i.e. description, credit hours, full name)
-            most_recent_term = terms_offered[0]
-            term = most_recent_term.split()
-            course_page = requests.get(
-                "https://courses.illinois.edu/schedule/" + term[1] + "/" + term[0] + "/" + course[
-                    0].upper() + "/" + course[1])
-            new_soup = BeautifulSoup(course_page.content, 'html.parser')
-            class_name = new_soup.find("span", class_="app-label app-text-engage").contents[0]
+        href_link_to_class = 'https://courses.illinois.edu/cisapp/explorer/catalog/2020/fall/' \
+                               + course[0].upper() + '/' + course[1] + '.xml'
+        try:
+            class_tree = ET.parse(urlopen(href_link_to_class)).getroot()
 
-            # May encounter errors with upper level classes
-            # Loop through parts 3 and 5 of col-sm-12 to hopefully
-            # Find a non-empty p tag
-            class_info = new_soup.find_all("div", class_="col-sm-12")[3]
-            if len(class_info.find_all('p')) == 0:
-                class_info = new_soup.find_all("div", class_="col-sm-12")[4]
-
-            deg_attr = class_info.find_all('li')
-            # print(deg_attr)
-
-            deg_attr = ',\n'.join([x.getText() for x in deg_attr])
-            class_info = class_info.find_all('p')
-            crh = class_info[0].getText()
-
-            desc = ''
-            if len(class_info[1].contents) == 0:
-                desc = class_info[2].get_text()
+            class_id = class_tree.attrib['id']  # AAS 100
+            # department_code, course_num = course.__get_class(class_id)  # AAS, 100
+            label = class_tree.find('label').text  # Intro Asian American Studies
+            description = class_tree.find('description').text  # Provided description of the class
+            crh = class_tree.find('creditHours').text  # 3 hours.
+            deg_attr = ',\n'.join(
+                x.text for x in class_tree.iter('genEdAttribute'))  # whatever geneds the class satisfies
+            year_term = class_tree.find('termsOffered').find('course').text
+            if year_term == 'Fall 2020':
+                year_term = 'Offered in Fall 2020.'
             else:
-                desc = class_info[1].get_text()
+                year_term = 'Most recently offered in ' + year_term
 
-            desc = str(desc).strip()
-            status = "Most recently offered in: " + most_recent_term
-            message_str = Course(name=class_str, title=class_name, crh=crh, gpa='No data.', status=status, deg_attr=deg_attr, desc=desc)
+            gpa = get_recent_average_gpa(class_id.upper().replace(' ', ''))
+            #  return __get_dict(year_term, class_id, department_code, course_num, label, description, crh, deg_attr)
+            message_str = Course(name=class_id, title=label, crh=crh, gpa=gpa, status=year_term,
+                                 deg_attr=deg_attr, desc=description)
             await channel.send(embed=message_str.get_embed())
-        else:
-            # if page not in course explorer, send the sad msg :(
+
+        except:
             await channel.send(class_str + ': Could not find this class.\n')
 
     else:
@@ -125,17 +83,9 @@ async def send_class(channel, course):
         else:
             deg_attr = ''
 
-        # print('new: ' + deg_attr)
-        if status == '2020-fa':
-            status = 'Offered in fa-2020.'
-        else:
-            status = 'Offered in sp-2020. May be offered in fa-2020.'
+        status = 'Offered in Fall 2020.'
 
-        gpa = get_recent_average_gpa(class_gpa, class_str)
-        if gpa is None:
-            gpa = 'No data.'
-        else:
-            gpa = str(round(gpa, 2))
+        gpa = get_recent_average_gpa(class_str)
 
         # Make a Class object with all information about the class.
         message_str = Course(class_str, class_name, crh, gpa, status, deg_attr, desc)
