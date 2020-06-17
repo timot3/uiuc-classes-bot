@@ -8,7 +8,7 @@ class Course:
     def __init__(self, name, title, crh, gpa, status, deg_attr,desc):
         self.class_name = name
         self.title = name + ': ' + title
-        dept, num = self.__get_class(name)
+        dept, num = self.__get_class_id(name)
         self.url = 'https://courses.illinois.edu/schedule/terms/' + dept + '/' + num
         self.crh = crh
         self.gpa = gpa
@@ -32,13 +32,15 @@ class Course:
         embed.add_field(name='Status', value=self.status, inline=False)
         # print(repr(self.status))
         if random.random() < 0.25:
-            embed.set_footer(text='Issues? Send a DM to @10x engineer#9075')
+            embed.set_footer(text='Am I wrong? Send a DM to @10x engineer#9075')
 
         return embed
 
     # Function to get department and class number.
-    def __get_class(self, str):
+
+    def __get_class_id(self, str):
         # Group 1:([A-Za-z]{2,4})
         # Group 2:(\d{3})
         temp = re.findall('([A-Za-z]{2,4})\s?(\d{3})', str)
         return temp[0][0], temp[0][1]
+
