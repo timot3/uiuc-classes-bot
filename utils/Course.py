@@ -2,13 +2,29 @@ import discord
 import re
 import random
 
+# Illini Blue ('Midnight'), Illini Orange('Cinnabar)
+colors = [0x12294b, 0xe84b38]
+
+mistakes = ['Am I wrong?',
+            'Did I make a mistake?'
+            'Have a suggestion? Make an issue on GitHub, or',
+            'Want to add this to your own server?']
+
+
+# Function to get department and class number.
+def get_class_id(class_code):
+    # Group 1:([A-Za-z]{2,4})
+    # Group 2:(\d{3})
+    temp = re.findall('([A-Za-z]{2,4})\s?(\d{3})', class_code)
+    return temp[0][0], temp[0][1]
+
 
 class Course:
 
-    def __init__(self, name, title, crh, gpa, status, deg_attr,desc):
+    def __init__(self, name, title, crh, gpa, status, deg_attr, desc):
         self.class_name = name
         self.title = name + ': ' + title
-        dept, num = self.__get_class_id(name)
+        dept, num = get_class_id(name)
         self.url = 'https://courses.illinois.edu/schedule/terms/' + dept + '/' + num
         self.crh = crh
         self.gpa = gpa
@@ -17,7 +33,6 @@ class Course:
         self.status = status
 
     def get_embed(self):
-        colors = [0x12294b, 0xe84b38]
         embed = discord.Embed(title=self.title, description=self.desc, url=self.url, color=random.choice(colors))
         # print(self.title)
         # print(self.desc)
@@ -31,16 +46,7 @@ class Course:
 
         embed.add_field(name='Status', value=self.status, inline=False)
         # print(repr(self.status))
-        if random.random() < 0.25:
-            embed.set_footer(text='Am I wrong? Send a DM to @10x engineer#9075')
+        if random.random() < 0.33:
+            embed.set_footer(text=random.choice(mistakes) + ' Send a DM to @10x engineer#9075')
 
         return embed
-
-    # Function to get department and class number.
-
-    def __get_class_id(self, str):
-        # Group 1:([A-Za-z]{2,4})
-        # Group 2:(\d{3})
-        temp = re.findall('([A-Za-z]{2,4})\s?(\d{3})', str)
-        return temp[0][0], temp[0][1]
-
