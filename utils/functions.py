@@ -35,6 +35,22 @@ def get_recent_average_gpa(course):
         return str(round(gpa, 2))
 
 
+'''
+Parameters
+----------
+course: either str or array
+        --> If str: this means that we need to get the URL from the API.
+        --> If array: We already know the term, so we can just get the URL
+'''
+def get_class_url(course):
+    if isinstance(course, str):
+        # split the most recent url, take the 2nd element of arr
+        url = course.split('https://courses.illinois.edu/cisapp/explorer/schedule/')[1].replace('.xml', '')
+        return 'https://courses.illinois.edu/schedule/' + url
+    else:
+        return 'https://courses.illinois.edu/schedule/2020/fall/' + course[0].upper() + '/' + course[1]
+
+
 def get_class_from_course_explorer(course):
     href = ''
     try:
@@ -53,7 +69,9 @@ def get_class_from_course_explorer(course):
     crh = class_tree.find('creditHours').text  # 3 hours.
     deg_attr = ',\n'.join(
         x.text for x in class_tree.iter('genEdAttribute'))  # whatever geneds the class satisfies
-    year_term = class_tree.find('termsOffered').find('course').text + '.'
+    class_link = class_tree.find('termsOffered').find('course')
+    year_term = class_link.text + '.'
+    most_recent_url = get_class_url(class_link.attrib['href'])
     if year_term == 'Fall 2020':
         year_term = 'Offered in ' + year_term
     else:
@@ -61,8 +79,7 @@ def get_class_from_course_explorer(course):
 
     gpa = get_recent_average_gpa(class_id.upper().replace(' ', ''))
     #  return __get_dict(year_term, class_id, department_code, course_num, label, description, crh, deg_attr)
-    return Course(name=class_id, title=label, crh=crh, gpa=gpa, status=year_term,
-                  deg_attr=deg_attr, desc=description)
+    return Course(class_id, label, crh, gpa, year_term, deg_attr, description, most_recent_url)
 
 
 def get_class_from_csv(course, line, class_str):
@@ -73,7 +90,6 @@ def get_class_from_csv(course, line, class_str):
     status = line['YearTerm'].iloc[0].strip()
     desc = (line.iloc[0]['Description']).replace(' &amp;', '&')
     deg_attr = line['Degree Attributes'].iloc[0]
-    # print(deg_attr)
 
     if isinstance(deg_attr, str):
         deg_attr = deg_attr.strip()
@@ -86,7 +102,8 @@ def get_class_from_csv(course, line, class_str):
     gpa = get_recent_average_gpa(class_str)
 
     # Make a Class object with all information about the class.
-    return Course(class_str, class_name, crh, gpa, status, deg_attr, desc)
+    url = get_class_url(course)
+    return Course(class_str, class_name, crh, gpa, status, deg_attr, desc, url)
 
 
 async def send_class(channel, course):

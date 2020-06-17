@@ -21,11 +21,11 @@ def get_class_id(class_code):
 
 class Course:
 
-    def __init__(self, name, title, crh, gpa, status, deg_attr, desc):
+    def __init__(self, name, title, crh, gpa, status, deg_attr, desc, url):
         self.class_name = name
         self.title = name + ': ' + title
         dept, num = get_class_id(name)
-        self.url = 'https://courses.illinois.edu/schedule/terms/' + dept + '/' + num
+        self.url = url
         self.crh = crh
         self.gpa = gpa
         self.desc = desc
@@ -40,7 +40,7 @@ class Course:
         # print(self.crh)
         embed.add_field(name='Average GPA', value=self.gpa, inline=False)
         # print(self.gpa)
-        print(self.deg_attr)
+        # print(self.deg_attr)
         if len(self.deg_attr) > 0:
             embed.add_field(name='Degree Attributes', value=self.deg_attr, inline=False)
 

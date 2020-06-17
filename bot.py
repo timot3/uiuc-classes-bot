@@ -48,7 +48,6 @@ async def on_message(message):
             # Remake the message but without the quote part.
             msg = ''.join(x for x in msg)
             msg = msg.upper()
-            # print(msg)
             # Parse the message. Converting to a set removes duplicates.
             classes = list(set(re.findall('\\\\?\[([A-Za-z]{2,4})\s?(\d{3})\\\\?\]', msg)))
 
