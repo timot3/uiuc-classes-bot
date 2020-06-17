@@ -6,7 +6,7 @@ import random
 colors = [0x12294b, 0xe84b38]
 
 mistakes = ['Am I wrong?',
-            'Did I make a mistake?'
+            'Did I make a mistake?',
             'Have a suggestion? Make an issue on GitHub, or',
             'Want to add this to your own server?']
 
