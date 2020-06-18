@@ -18,6 +18,10 @@ async def on_ready():
     print('Bot online.')
     print("Name: {}".format(bot.user.name))
     print("ID: {}".format(bot.user.id))
+
+    print('In {} guilds'.format(len(bot.guilds)))
+    members = sum([guild.member_count for guild in bot.guilds])
+    print('Serving a total amount of {} members'.format(members))
     # Set status
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='c!info'))
 
@@ -29,13 +33,6 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    # TODO: Find gened requirements
-    # geneds = re.findall('\[(\D*?)\]', message.content)
-    # if len(geneds) > 0:
-    #     get_geneds(geneds)
-    #     return
-
-    # Find all classes in an input string.
     # TODO Move string parsing to helepr function
     potential_message = '[' and ']' in message.content
     classes = []
