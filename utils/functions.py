@@ -97,7 +97,7 @@ def get_class_from_csv(course, line, class_str):
     else:
         deg_attr = ''
 
-    status = 'Offered in Fall 2020.'
+    status = 'Offered in Fall 2020. :white_check_mark:'
 
     gpa = get_recent_average_gpa(class_str)
 
