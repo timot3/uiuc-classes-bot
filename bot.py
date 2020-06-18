@@ -82,5 +82,12 @@ async def await_ap(ctx):
 async def await_ap(ctx):
     await ctx.send('http://waf.cs.illinois.edu/discovery/every_gen_ed_at_uiuc_by_gpa/')
 
+
+@bot.command(name='users', aliases=['usercount'])
+async def await_usercount(ctx):
+    members = sum([guild.member_count for guild in bot.guilds])
+    guilds = len(bot.guilds)
+    await ctx.send('Serving {} servers, with {} total members.'.format(guilds, members))
+
 # Run the bot.
 bot.run(TOKEN.strip())
