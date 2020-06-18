@@ -87,7 +87,7 @@ async def await_ap(ctx):
 async def await_usercount(ctx):
     members = sum([guild.member_count for guild in bot.guilds])
     guilds = len(bot.guilds)
-    await ctx.send('Serving {} servers, with {} total members.'.format(guilds, members))
+    await ctx.send('Online with {} servers and {} total members.'.format(guilds, members))
 
 # Run the bot.
 bot.run(TOKEN.strip())
