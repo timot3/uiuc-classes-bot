@@ -47,6 +47,6 @@ class Course:
         embed.add_field(name='Status', value=self.status, inline=False)
         # print(repr(self.status))
         if random.random() < 0.33:
-            embed.set_footer(text=random.choice(mistakes) + ' Send a DM to @10x engineer#9075')
+            embed.set_footer(text=random.choice(mistakes) + ' DM @10x engineer#9075.')
 
         return embed

@@ -21,6 +21,9 @@ async def on_ready():
 
     print('In {} guilds'.format(len(bot.guilds)))
     members = sum([guild.member_count for guild in bot.guilds])
+    for guild in bot.guilds:
+        print('In {}, with owner {}'.format(guild.name, guild.owner))
+        print('Guild permissions: {}'.format(guild.me.guild_permissions))
     print('Serving a total amount of {} members'.format(members))
     # Set status
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='c!info'))

@@ -70,12 +70,16 @@ def get_class_from_course_explorer(course):
     deg_attr = ',\n'.join(
         x.text for x in class_tree.iter('genEdAttribute'))  # whatever geneds the class satisfies
     class_link = class_tree.find('termsOffered').find('course')
-    year_term = class_link.text
-    most_recent_url = get_class_url(class_link.attrib['href'])
-    if year_term == 'Fall 2020':
-        year_term = 'Offered in ' + year_term + '. :white_check_mark:'
+    most_recent_url = 'https://courses.illinois.edu/schedule/2020/fall/'
+    if class_link is None:
+        year_term = 'None'
     else:
-        year_term = 'Most recently offered in ' + year_term + '.'
+        year_term = class_link.text
+        most_recent_url = get_class_url(class_link.attrib['href'])
+        if year_term == 'Fall 2020':
+            year_term = 'Offered in ' + year_term + '. :white_check_mark:'
+        else:
+            year_term = 'Most recently offered in ' + year_term + '.'
 
     gpa = get_recent_average_gpa(class_id.upper().replace(' ', ''))
     #  return __get_dict(year_term, class_id, department_code, course_num, label, description, crh, deg_attr)
