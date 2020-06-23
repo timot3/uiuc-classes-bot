@@ -143,6 +143,9 @@ async def send_class(channel, course):
             await channel.send(class_str + ' was already requested in the last 30 seconds. Slow down!')
             return
 
+    # Start asynchronous task that pops the class from the list in 30 seconds.
+    asyncio.create_task(limit_classes_sent(channel, class_str))
+
     line = classes_offered.loc[classes_offered['Class'] == class_str]
 
     if len(line) == 0:
@@ -162,7 +165,5 @@ async def send_class(channel, course):
         message_str = get_class_from_csv(course, line, class_str)
         await channel.send(embed=message_str.get_embed())
 
-    # Start asynchronous task that pops the class from the list in 30 seconds.
-    asyncio.create_task(limit_classes_sent(channel, class_str))
 
 
