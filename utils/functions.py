@@ -7,7 +7,7 @@ from urllib.request import urlopen
 import traceback
 import asyncio
 
-classes_sent = {}
+classes_sent = {}  # The classes sent in a channel.
 classes_offered = pd.read_csv('data/2020-fa.csv')
 classes_offered['Class'] = classes_offered['Subject'] + classes_offered['Number'].astype(str)
 class_gpa = pd.read_csv('data/uiuc-gpa-dataset.csv')
@@ -16,6 +16,10 @@ class_gpa['Class'] = class_gpa['Subject'] + class_gpa['Number'].astype(str)
 
 # Taken from Prof. Wade's reddit-uiuc-bot.
 def get_recent_average_gpa(course):
+    '''
+    :param course: string that represents the class ('CS125')
+    :return: The average gpa for that class
+    '''
     df = class_gpa[class_gpa["Class"] == course].groupby(
         "Class").agg("sum").reset_index()
     if len(df) == 0:
@@ -37,14 +41,15 @@ def get_recent_average_gpa(course):
         return str(round(gpa, 2))
 
 
-'''
-Parameters
-----------
-course: either str or array
-        --> If str: this means that we need to get the URL from the API.
-        --> If array: We already know the term, so we can just get the URL
-'''
+
 def get_class_url(course):
+    '''
+    :param course: either str or array
+            --> If str: this means that we need to get the URL from the API.
+            --> If array: We already know the term, so we can just get the URL
+    :return: None
+    '''
+
     if isinstance(course, str):
         # split the most recent url, take the 2nd element of arr
         url = course.split('https://courses.illinois.edu/cisapp/explorer/schedule/')[1].replace('.xml', '')
@@ -113,7 +118,11 @@ def get_class_from_csv(course, line, class_str):
 
 
 async def limit_classes_sent(channel, class_str):
-    print('here')
+    '''
+    :param channel: The channel the class was sent in.
+    :param class_str: the class sent ('CS125')
+    :return: None
+    '''
     if channel.id not in classes_sent:
         classes_sent[channel.id] = [class_str]
     else:
@@ -123,23 +132,20 @@ async def limit_classes_sent(channel, class_str):
 
 
 async def send_class(channel, course):
-    # TODO Add comment about meaning of course
-
+    '''
+    course: tuple containing department code and class number.
+    course[0]: department code
+    course[1]: class number
+    '''
     class_str = course[0].upper() + course[1]
-    print(classes_sent)
     if channel.id in classes_sent:
         if class_str in classes_sent[channel.id]:
-            await channel.send(class_str + ' was already requested in the past 30 seconds. Slow down!')
+            await channel.send(class_str + ' was already requested in the last 30 seconds. Slow down!')
             return
-        else:
-            print('running async loop...')
 
     line = classes_offered.loc[classes_offered['Class'] == class_str]
 
     if len(line) == 0:
-        # href_link_to_class = 'https://courses.illinois.edu/cisapp/explorer/catalog/2020/fall/' \
-        #                      + course[0].upper() + '/' + course[1] + '.xml'
-
         try:
             message_str = get_class_from_course_explorer(course)
             if message_str is None:
@@ -156,6 +162,7 @@ async def send_class(channel, course):
         message_str = get_class_from_csv(course, line, class_str)
         await channel.send(embed=message_str.get_embed())
 
+    # Start asynchronous task that pops the class from the list in 30 seconds.
     asyncio.create_task(limit_classes_sent(channel, class_str))
 
 

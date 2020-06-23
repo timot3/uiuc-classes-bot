@@ -2,7 +2,6 @@ from utils.functions import send_class
 from discord.ext import commands, tasks
 import discord
 import re
-import asyncio
 
 TOKEN = ''
 
@@ -31,42 +30,12 @@ async def on_ready():
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='c!info'))
 
 
-# # AADARSH
-# async def update_messages():
-#     await bot.wait_until_ready()
-#     global messages
-#     # while the bot is running, we're going to continue to do what's in here
-#     while not bot.is_closed():
-#         if messages:
-#             try:
-#                 print('accessed')
-#                 print(messages)
-#                 messages.pop(0)
-#                 await asyncio.sleep(5)
-#             except IndexError:
-#                 pass
-# # ****************
-
 # Parse every message
 @bot.event
 async def on_message(message):
     if message.author.bot:
         return
-    # print(message.content)
-    # global messages
-    # messages += message.content
-    # Make sure the bot does not respond to its own messages.
 
-# AADARSH :
-#     global messages
-#     await message.channel.send(message.content)
-#     for prev_message, prev_server in messages:
-#         if prev_message == message.content and prev_server == message.guild:
-#             await message.channel.send('Someone has recently requested this class.')
-#             return  # do not continue with rest of function. message is invalid, so no need to fetch data
-#         else:
-#             messages += (message.content, message.guild)
-# ************************
     # TODO Move string parsing to helper function
     potential_message = '[' and ']' in message.content
     classes = []
@@ -123,10 +92,7 @@ async def await_usercount(ctx):
     guilds = len(bot.guilds)
     await ctx.send('Online with {} servers and {} total members.'.format(guilds, members))
 
-# update_messages = asyncio.coroutine(update_messages)
-
 
 # Run the bot.
 bot.run(TOKEN.strip())
-# bot.loop.create_task(update_messages())
 
