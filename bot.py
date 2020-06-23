@@ -4,11 +4,10 @@ import discord
 import re
 import asyncio
 
+TOKEN = ''
 
-TOKEN = 'NzIzNDMyOTgwNzI2NTQ2NDUz.XuxqOA.9OnaS5MVEbFNV6BRyEYwLGnhGRc'
-
-# with open('config.txt', 'r') as f:
-#     TOKEN = f.readline().strip()
+with open('config.txt', 'r') as f:
+   TOKEN = f.readline().strip()
 
 bot = commands.Bot(command_prefix=('c!', 'C!'), case_insensitive=True, help_command=None)
 messages = []
