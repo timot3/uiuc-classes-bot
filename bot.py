@@ -25,36 +25,36 @@ async def on_ready():
     members = sum([guild.member_count for guild in bot.guilds])
     for guild in bot.guilds:
         print('In {}, with owner {}'.format(guild.name, guild.owner))
-        print('Guild permissions: {}'.format(guild.me.guild_permissions))
-    print('Serving a total amount of {} members'.format(members))
+        # print('Guild permissions: {}'.format(guild.me.guild_permissions))
+    print('Serving a total of {} members'.format(members))
     # Set status
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='c!info'))
 
 
-# AADARSH
-async def update_messages():
-    await bot.wait_until_ready()
-    global messages
-    # while the bot is running, we're going to continue to do what's in here
-    while not bot.is_closed():
-        if messages:
-            try:
-                print('accessed')
-                print(messages)
-                messages.pop(0)
-                await asyncio.sleep(5)
-            except IndexError:
-                pass
-# ****************
+# # AADARSH
+# async def update_messages():
+#     await bot.wait_until_ready()
+#     global messages
+#     # while the bot is running, we're going to continue to do what's in here
+#     while not bot.is_closed():
+#         if messages:
+#             try:
+#                 print('accessed')
+#                 print(messages)
+#                 messages.pop(0)
+#                 await asyncio.sleep(5)
+#             except IndexError:
+#                 pass
+# # ****************
 
 # Parse every message
 @bot.event
 async def on_message(message):
     if message.author.bot:
         return
-    print(message.content)
-    global messages
-    messages += message.content
+    # print(message.content)
+    # global messages
+    # messages += message.content
     # Make sure the bot does not respond to its own messages.
 
 # AADARSH :
@@ -127,6 +127,6 @@ async def await_usercount(ctx):
 
 
 # Run the bot.
-bot.loop.create_task(update_messages())
 bot.run(TOKEN.strip())
+# bot.loop.create_task(update_messages())
 

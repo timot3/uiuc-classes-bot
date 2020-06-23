@@ -5,7 +5,9 @@ import xml.etree.ElementTree as ET
 import urllib
 from urllib.request import urlopen
 import traceback
+import asyncio
 
+classes_sent = {}
 classes_offered = pd.read_csv('data/2020-fa.csv')
 classes_offered['Class'] = classes_offered['Subject'] + classes_offered['Number'].astype(str)
 class_gpa = pd.read_csv('data/uiuc-gpa-dataset.csv')
@@ -110,14 +112,33 @@ def get_class_from_csv(course, line, class_str):
     return Course(class_str, class_name, crh, gpa, status, deg_attr, desc, url)
 
 
+async def limit_classes_sent(channel, class_str):
+    print('here')
+    if channel.id not in classes_sent:
+        classes_sent[channel.id] = [class_str]
+    else:
+        classes_sent[channel.id] += [class_str]
+    await asyncio.sleep(30)
+    classes_sent[channel.id].remove(class_str)
+
+
 async def send_class(channel, course):
     # TODO Add comment about meaning of course
+
     class_str = course[0].upper() + course[1]
+    print(classes_sent)
+    if channel.id in classes_sent:
+        if class_str in classes_sent[channel.id]:
+            await channel.send(class_str + ' was already requested in the past 30 seconds. Slow down!')
+            return
+        else:
+            print('running async loop...')
+
     line = classes_offered.loc[classes_offered['Class'] == class_str]
 
     if len(line) == 0:
-        href_link_to_class = 'https://courses.illinois.edu/cisapp/explorer/catalog/2020/fall/' \
-                             + course[0].upper() + '/' + course[1] + '.xml'
+        # href_link_to_class = 'https://courses.illinois.edu/cisapp/explorer/catalog/2020/fall/' \
+        #                      + course[0].upper() + '/' + course[1] + '.xml'
 
         try:
             message_str = get_class_from_course_explorer(course)
@@ -134,3 +155,7 @@ async def send_class(channel, course):
         # send embed in channel
         message_str = get_class_from_csv(course, line, class_str)
         await channel.send(embed=message_str.get_embed())
+
+    asyncio.create_task(limit_classes_sent(channel, class_str))
+
+
