@@ -21,7 +21,7 @@ def get_class_id(class_code):
 
 class Course:
 
-    def __init__(self, name, title, crh, gpa, status, deg_attr, desc, url):
+    def __init__(self, name, title, crh, gpa, status, deg_attr, desc, url, online_status):
         self.class_name = name
         self.title = name + ': ' + title
         dept, num = get_class_id(name)
@@ -31,7 +31,9 @@ class Course:
         self.desc = desc
         self.deg_attr = deg_attr
         self.status = status
+        self.online_status = online_status
 
+    # TODO: add online status to embed
     def get_embed(self):
         embed = discord.Embed(title=self.title, description=self.desc, url=self.url, color=random.choice(colors))
         # print(self.title)
