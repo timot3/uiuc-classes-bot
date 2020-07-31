@@ -33,7 +33,7 @@ class Course:
         self.status = status
         self.online_status = online_status
 
-    # TODO: add online status to embed
+
     def get_embed(self):
         embed = discord.Embed(title=self.title, description=self.desc, url=self.url, color=random.choice(colors))
         # print(self.title)
@@ -49,6 +49,7 @@ class Course:
         embed.add_field(name='Status', value=self.status, inline=False)
         embed.add_field(name='Online/Offline Status', value=self.online_status, inline=False)
         # print(repr(self.status))
+
         if random.random() < 0.33:
             embed.set_footer(text=random.choice(mistakes) + ' DM @10x engineer#9075.')
 

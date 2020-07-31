@@ -43,6 +43,26 @@ def get_recent_average_gpa(course):
         return str(round(gpa, 2))
 
 
+# returns string describing the online/in-person status of the class
+def get_online_status(most_recent_url):
+    try:
+        # get total num of sections & num online
+        r = requests.get(most_recent_url)
+        soup = BeautifulSoup(r.content, 'html.parser')
+        script = str(soup.find_all("script")[4])
+        online_sections = script.count(">Online")
+        total_sections = script.count("crn")
+        # decide which emoji to use based on % of sections online
+        if int(online_sections) / int(total_sections) >= 0.5:
+            status_emoji = ":computer:"
+        else:
+            status_emoji = ":books:"
+        # create string/desc of status
+        online_status = f"{online_sections} of {total_sections} sections online. {status_emoji}"
+    except:
+        online_status = "N/A"
+    return online_status
+
 
 def get_class_url(course):
     '''
@@ -93,7 +113,7 @@ def get_class_from_course_explorer(course):
     gpa = get_recent_average_gpa(class_id.upper().replace(' ', ''))
     #  return __get_dict(year_term, class_id, department_code, course_num, label, description, crh, deg_attr)
 
-    # TODO: get online/offline status
+    # get online/offline status
     if year_term == 'Fall 2020':
         # get total num of sections & num online
         r = requests.get(most_recent_url)
@@ -110,9 +130,9 @@ def get_class_from_course_explorer(course):
         online_status = f"{status_emoji} {online_sections} of {total_sections} sections online."
     else:
         online_status = "N/A"
-    return Course(class_id, label, crh, gpa, year_term, deg_attr, description, most_recent_url)
+    return Course(class_id, label, crh, gpa, year_term, deg_attr, description, most_recent_url, online_status)
 
-
+# TODO: add online/offline status
 def get_class_from_csv(course, line, class_str):
     # Get information about a class.
     class_name = line['Name'].iloc[0].replace('&amp;', '&')  # fix issues with the ampersand
