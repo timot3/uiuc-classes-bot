@@ -63,6 +63,7 @@ def get_online_status(most_recent_url):
         # create string/desc of status
         online_status = f"{online_sections} of {total_sections} sections online. {status_emoji}"
     except:
+        print(traceback.format_exc())
         online_status = "N/A"
     return online_status
 
@@ -120,7 +121,7 @@ def get_class_from_course_explorer(course):
     if year_term == 'Fall 2020':
         online_status = get_online_status(most_recent_url)
     else:
-        online_status = "N/A"
+        online_status = 'N/A'
     return Course(class_id, label, crh, gpa, year_term, deg_attr, description, most_recent_url, online_status)
 
 
