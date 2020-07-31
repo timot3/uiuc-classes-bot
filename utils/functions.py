@@ -56,15 +56,14 @@ def get_online_status(most_recent_url):
         online_sections = script.count('type:<div class=App-meeting\>Online')
         total_sections = script.count("crn")
         # decide which emoji to use based on % of sections online
-        if int(online_sections) / int(total_sections) >= 0.5:
-            status_emoji = ":computer:"
-        else:
-            status_emoji = ":books:"
+
+        status_emoji = ":computer:" if int(online_sections) / int(total_sections) >= 0.5 else ":books:"
         # create string/desc of status
         online_status = f"{online_sections} of {total_sections} sections online. {status_emoji}"
-    except:
+    except Exception:
         print(traceback.format_exc())
         online_status = "N/A"
+
     return online_status
 
 
@@ -117,11 +116,8 @@ def get_class_from_course_explorer(course):
     gpa = get_recent_average_gpa(class_id.upper().replace(' ', ''))
     #  return __get_dict(year_term, class_id, department_code, course_num, label, description, crh, deg_attr)
 
-    # get online/offline status
-    if year_term == 'Fall 2020':
-        online_status = get_online_status(most_recent_url)
-    else:
-        online_status = 'N/A'
+    online_status = get_online_status(most_recent_url)
+
     return Course(class_id, label, crh, gpa, year_term, deg_attr, description, most_recent_url, online_status)
 
 
