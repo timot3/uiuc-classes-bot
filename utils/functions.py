@@ -142,7 +142,13 @@ def get_class_from_csv(course, line, class_str):
 
     # Make a Class object with all information about the class.
     url = get_class_url(course)
-    return Course(class_str, class_name, crh, gpa, status, deg_attr, desc, url)
+
+    # get online/in-person status
+    if status == 'Offered in Fall 2020. :white_check_mark:':
+        online_status = get_online_status(url)
+    else:
+        online_status = "N/A"
+    return Course(class_str, class_name, crh, gpa, status, deg_attr, desc, url, online_status)
 
 
 async def limit_classes_sent(channel, class_str):
