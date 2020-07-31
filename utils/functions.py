@@ -115,12 +115,12 @@ def get_class_from_course_explorer(course):
 
     # get online/offline status
     if year_term == 'Fall 2020':
-        online_status = get_online_status()
+        online_status = get_online_status(most_recent_url)
     else:
         online_status = "N/A"
     return Course(class_id, label, crh, gpa, year_term, deg_attr, description, most_recent_url, online_status)
 
-# TODO: add online/offline status
+
 def get_class_from_csv(course, line, class_str):
     # Get information about a class.
     class_name = line['Name'].iloc[0].replace('&amp;', '&')  # fix issues with the ampersand
