@@ -21,7 +21,7 @@ def get_class_id(class_code):
 
 class Course:
 
-    def __init__(self, name, title, crh, gpa, status, deg_attr, desc, url):
+    def __init__(self, name, title, crh, gpa, status, deg_attr, desc, url, online_status):
         self.class_name = name
         self.title = name + ': ' + title
         dept, num = get_class_id(name)
@@ -31,6 +31,8 @@ class Course:
         self.desc = desc
         self.deg_attr = deg_attr
         self.status = status
+        self.online_status = online_status
+
 
     def get_embed(self):
         embed = discord.Embed(title=self.title, description=self.desc, url=self.url, color=random.choice(colors))
@@ -45,7 +47,9 @@ class Course:
             embed.add_field(name='Degree Attributes', value=self.deg_attr, inline=False)
 
         embed.add_field(name='Status', value=self.status, inline=False)
+        embed.add_field(name='Online/In-Person Status', value=self.online_status, inline=False)
         # print(repr(self.status))
+
         if random.random() < 0.33:
             embed.set_footer(text=random.choice(mistakes) + ' DM @10x engineer#9075.')
 
