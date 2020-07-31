@@ -6,6 +6,8 @@ import urllib
 from urllib.request import urlopen
 import traceback
 import asyncio
+import requests
+from bs4 import BeautifulSoup
 
 classes_sent = {}  # The classes sent in a channel.
 classes_offered = pd.read_csv('data/2020-fa.csv')
@@ -90,6 +92,11 @@ def get_class_from_course_explorer(course):
 
     gpa = get_recent_average_gpa(class_id.upper().replace(' ', ''))
     #  return __get_dict(year_term, class_id, department_code, course_num, label, description, crh, deg_attr)
+
+    # TODO: get online/offline status
+    if year_term == 'Fall 2020':
+        r = requests.get(most_recent_url)
+
     return Course(class_id, label, crh, gpa, year_term, deg_attr, description, most_recent_url)
 
 
