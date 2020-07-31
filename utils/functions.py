@@ -50,7 +50,10 @@ def get_online_status(most_recent_url):
         r = requests.get(most_recent_url)
         soup = BeautifulSoup(r.content, 'html.parser')
         script = str(soup.find_all("script")[4])
-        online_sections = script.count(">Online")
+        script = script.replace('\"','')
+        script = script.replace('\\a','A')
+        # print(script)
+        online_sections = script.count('type:<div class=App-meeting\>Online')
         total_sections = script.count("crn")
         # decide which emoji to use based on % of sections online
         if int(online_sections) / int(total_sections) >= 0.5:
