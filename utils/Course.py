@@ -47,6 +47,7 @@ class Course:
             embed.add_field(name='Degree Attributes', value=self.deg_attr, inline=False)
 
         embed.add_field(name='Status', value=self.status, inline=False)
+        embed.add_field(name='Online/Offline Status', value=self.online_status, inline=False)
         # print(repr(self.status))
         if random.random() < 0.33:
             embed.set_footer(text=random.choice(mistakes) + ' DM @10x engineer#9075.')
