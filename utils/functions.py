@@ -115,19 +115,7 @@ def get_class_from_course_explorer(course):
 
     # get online/offline status
     if year_term == 'Fall 2020':
-        # get total num of sections & num online
-        r = requests.get(most_recent_url)
-        soup = BeautifulSoup(r.content, 'html.parser')
-        script = str(soup.find_all("script")[4])
-        online_sections = script.count(">Online")
-        total_sections = script.count("crn")
-        # decide which emoji to use based on % of sections online
-        if int(online_sections) / int(total_sections) >= 0.5:
-            status_emoji = ":computer:"
-        else:
-            status_emoji = ":books:"
-        # create string/desc of status
-        online_status = f"{status_emoji} {online_sections} of {total_sections} sections online."
+        online_status = get_online_status()
     else:
         online_status = "N/A"
     return Course(class_id, label, crh, gpa, year_term, deg_attr, description, most_recent_url, online_status)
