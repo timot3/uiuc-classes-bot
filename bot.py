@@ -4,6 +4,7 @@ import discord
 import os
 import re
 
+# If testing locally, use this instead of the OS environment variables
 # TOKEN = ''
 
 # with open('config.txt', 'r') as f:
