@@ -1,12 +1,15 @@
 from utils.functions import send_class
 from discord.ext import commands, tasks
 import discord
+import os
 import re
 
-TOKEN = ''
+# TOKEN = ''
 
-with open('config.txt', 'r') as f:
-   TOKEN = f.readline().strip()
+# with open('config.txt', 'r') as f:
+#    TOKEN = f.readline().strip()
+
+TOKEN = os.environ['CLASSBOT_TOKEN']
 
 bot = commands.Bot(command_prefix=('c!', 'C!'), case_insensitive=True, help_command=None)
 messages = []
