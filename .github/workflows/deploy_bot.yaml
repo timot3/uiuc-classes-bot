@@ -6,11 +6,9 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.7, 3.8]
 
     steps:
+    test-branch
       - name: executing remote ssh commands using password
           uses: appleboy/ssh-action@master
           with:
