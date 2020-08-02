@@ -29,13 +29,13 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-      - name: executing remote ssh commands using password
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_SECRET_KEY }}
-          script: |
-            sudo docker pull timot3/uiuc-classes
-            sudo docker stop classbot
-            sudo docker run -itd -e CLASSBOT_TOKEN=${{ secrets.BOT_TOKEN }} --rm --name classbot timot3/uiuc-classes
+    - name: executing remote ssh commands using password
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_SECRET_KEY }}
+        script: |
+          sudo docker pull timot3/uiuc-classes
+          sudo docker stop classbot
+          sudo docker run -itd -e CLASSBOT_TOKEN=${{ secrets.BOT_TOKEN }} --rm --name classbot timot3/uiuc-classes
