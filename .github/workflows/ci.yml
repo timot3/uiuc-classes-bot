@@ -1,21 +1,42 @@
-
 name: remote ssh build
 on: [push]
+
 jobs:
-
   build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-    - name: checkout
-      uses: actions/checkout@v1
 
-    - name: executing remote ssh commands using password
-      uses: appleboy/ssh-action@master
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
       with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.SSH_SECRET_KEY }}
-        script: |
-          sudo docker pull timot3/uiuc-classes
-          sudo docker run -itd -e CLASSBOT_TOKEN=$CLASSBOT_TOKEN --rm --name classbot timot3/uiuc-classes
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_SECRET_KEY }}
+          script: |
+            sudo docker pull timot3/uiuc-classes
+            sudo docker stop classbot
+            sudo docker run -itd -e CLASSBOT_TOKEN=${{ secrets.BOT_TOKEN }} --rm --name classbot timot3/uiuc-classes
