@@ -16,6 +16,7 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_SECRET_KEY }}
+        password: ${{ secrets.PASSWD }}
         script: whoami
 
 #name: UIUC Class Bot
