@@ -50,7 +50,7 @@ class Course:
         embed.add_field(name='Online/In-Person Status', value=self.online_status, inline=False)
         # print(repr(self.status))
 
-        if random.random() < 0.33:
+        if random.random() < 0.25:
             embed.set_footer(text=random.choice(mistakes) + ' DM @10x engineer#9075.')
 
         return embed
