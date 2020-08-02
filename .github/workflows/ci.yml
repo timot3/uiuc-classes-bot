@@ -1,5 +1,5 @@
 
-name: remote ssh command
+name: remote ssh build
 on: [push]
 jobs:
 
@@ -16,25 +16,6 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_SECRET_KEY }}
-        script: whoami
-
-#name: UIUC Class Bot
-#
-#on: [push]
-#
-#jobs:
-#  build:
-#
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: executing remote ssh commands using password
-#          uses: appleboy/ssh-action@master
-#          with:
-#            host: ${{ secrets.HOST }}
-#            username: ${{ secrets.USERNAME }}
-#            key: ${{ secrets.SSH_SECRET_KEY }}
-#            script: |
-#              sudo docker pull timot3/uiuc-classes
-#              sudo docker stop classbot
-#              sudo docker run -itd -e CLASSBOT_TOKEN=$CLASSBOT_TOKEN --rm --name classbot timot3/uiuc-classes
+        script: |
+          sudo docker pull timot3/uiuc-classes
+          sudo docker run -itd -e CLASSBOT_TOKEN=$CLASSBOT_TOKEN --rm --name classbot timot3/uiuc-classes
