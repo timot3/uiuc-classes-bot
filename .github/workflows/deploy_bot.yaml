@@ -8,7 +8,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    test-branch
       - name: executing remote ssh commands using password
           uses: appleboy/ssh-action@master
           with:
