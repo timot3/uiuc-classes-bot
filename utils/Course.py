@@ -30,9 +30,7 @@ class Course:
         self.gpa = gpa
         self.desc = desc
         self.deg_attr = deg_attr
-        self.status = status
-        self.online_status = online_status
-
+        self.status = status + '\n' + online_status
 
     def get_embed(self):
         embed = discord.Embed(title=self.title, description=self.desc, url=self.url, color=random.choice(colors))
@@ -47,7 +45,7 @@ class Course:
             embed.add_field(name='Degree Attributes', value=self.deg_attr, inline=False)
 
         embed.add_field(name='Status', value=self.status, inline=False)
-        embed.add_field(name='Online/In-Person Status', value=self.online_status, inline=False)
+        # embed.add_field(name='Online/In-Person Status', value=self.online_status, inline=False)
         # print(repr(self.status))
 
         if random.random() < 0.25:
