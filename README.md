@@ -16,11 +16,12 @@ You can request multiple classes on the same line as well.
 
 ![two-classes](https://cdn.discordapp.com/attachments/705899037848502303/712440043154702336/two-classes.png)
 
-### TODO:
-- Make the docker container (hosted on docker hub) actually work. 
-For this, I need to figure out how to use docker secrets first to not push my bot token. 
-
-The docker container is available [here](https://hub.docker.com/r/timot3/uiuc-classes), but you cannot run that container without a config.txt file with your token.
+I have the bot running on a docker container hosted on an AWS t2.micro instance. I decided not to use their container service because the free tier option is less powerful. The docker container is available [here](https://hub.docker.com/r/timot3/uiuc-classes), but you cannot run that container without a token in your environment variables.
 
 Currently I have my own container running on an AWS t2.micro instance.
+
+### TODO:
+- Switch to [UIUC Classes API](https://uiuc-api.readthedocs.io/en/latest/)
+
+
 
