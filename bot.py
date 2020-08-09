@@ -12,7 +12,7 @@ import re
 
 TOKEN = os.environ['CLASSBOT_TOKEN']
 
-bot = commands.Bot(command_prefix=('c!', 'C!'), case_insensitive=True, help_command=None)
+bot = commands.Bot(command_prefix=('c$', 'C$'), case_insensitive=True, help_command=None)
 messages = []
 
 
@@ -31,7 +31,7 @@ async def on_ready():
         # print('Guild permissions: {}'.format(guild.me.guild_permissions))
     print('Serving a total of {} members'.format(members))
     # Set status
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='c!info'))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='c$info'))
 
 
 # Parse every message
@@ -72,8 +72,8 @@ async def await_info(ctx):
     desc = 'To get a class, do [`department` `number`]. For example: `[cs 225]`. This is case insensitive, ' \
            'and the space between the department and the class number is optional. '
     embed = discord.Embed(title='Help', description=desc, url='https://github.com/timot3/uiuc-classes-bot/')
-    embed.add_field(name='AP - c!AP', value='Links the UIUC AP credit page')
-    embed.add_field(name='Geneds - c!Gened', value='Links the Geneds by GPA page.')
+    embed.add_field(name='AP - c$AP', value='Links the UIUC AP credit page')
+    embed.add_field(name='Geneds - c$Gened', value='Links the Geneds by GPA page.')
 
     embed.add_field(name='API Latency', value=str(round(bot.latency * 1000, 1))+'ms.')
     embed.set_footer(text='Having issues with the bot? Send a DM to @10x engineer#9075')
