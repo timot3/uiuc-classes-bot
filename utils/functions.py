@@ -7,6 +7,7 @@ from urllib.request import urlopen
 import traceback
 import asyncio
 import requests
+import math
 from bs4 import BeautifulSoup
 
 classes_sent = {}  # The classes sent in a channel.
@@ -17,25 +18,36 @@ class_gpa['Class'] = class_gpa['Subject'] + class_gpa['Number'].astype(str)
 
 
 # Taken from Prof. Wade's reddit-uiuc-bot.
+
 def get_recent_average_gpa(course):
     '''
     :param course: string that represents the class ('CS125')
     :return: The average gpa for that class
     '''
-    df = class_gpa[class_gpa["Class"] == course].groupby(
-        "Class").agg("sum").reset_index()
-    if len(df) == 0:
-        return None
+    gpa = classes_offered[classes_offered['Class'] == course]
+    if len(gpa) > 0:
+        gpa = gpa.iloc[0]['GPA']
+        if math.isnan(gpa):
+            return 'No data'
+        else:
+            return gpa
 
-    df["Count GPA"] = df["A+"] + df["A"] + df["A-"] + df["B+"] + df["B"] + df["B-"] + \
-                      df["C+"] + df["C"] + df["C-"] + df["D+"] + df["D"] + df["D-"] + df["W"]
-    df["Sum GPA"] = (4 * (df["A+"] + df["A"])) + (3.67 * df["A-"]) + \
-                    (3.33 * df["B+"]) + (3 * df["B"]) + (2.67 * df["B-"]) + \
-                    (2.33 * df["C+"]) + (2 * df["C"]) + (1.67 * df["C-"]) + \
-                    (1.33 * df["D+"]) + (1 * df["D"]) + (0.67 * df["D-"])
+    else:
+        df = class_gpa[class_gpa["Class"] == course].groupby(
+            "Class").agg("sum").reset_index()
+        if len(df) == 0:
+            return 'No data'
 
-    df["Average GPA"] = df["Sum GPA"] / df["Count GPA"]
-    gpa = df["Average GPA"].values[0]
+        df["Count GPA"] = df["A+"] + df["A"] + df["A-"] + df["B+"] + df["B"] + df["B-"] + \
+                          df["C+"] + df["C"] + df["C-"] + df["D+"] + df["D"] + df["D-"] + df["W"]
+        df["Sum GPA"] = (4 * (df["A+"] + df["A"])) + (3.67 * df["A-"]) + \
+                        (3.33 * df["B+"]) + (3 * df["B"]) + (2.67 * df["B-"]) + \
+                        (2.33 * df["C+"]) + (2 * df["C"]) + (1.67 * df["C-"]) + \
+                        (1.33 * df["D+"]) + (1 * df["D"]) + (0.67 * df["D-"])
+
+        df["Average GPA"] = df["Sum GPA"] / df["Count GPA"]
+        gpa = df["Average GPA"].values[0]
+
 
     if gpa is None:
         return 'No data'
