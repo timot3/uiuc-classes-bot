@@ -25,11 +25,18 @@ async def on_ready():
     print("ID: {}".format(bot.user.id))
 
     print('In {} guilds'.format(len(bot.guilds)))
-    members = sum([guild.member_count for guild in bot.guilds])
+    members = [] # sum([guild.member_count for guild in bot.guilds])
+    total_members = 0
     for guild in bot.guilds:
-        print('In {}, with owner {}'.format(guild.name, guild.owner))
+        for member in guild.members:
+            members.append(member.id)
+        total_members += guild.member_count
+        print('In {}, with owner {}\t\tUsers: {}'.format(guild.name, guild.owner, guild.member_count))
         # print('Guild permissions: {}'.format(guild.me.guild_permissions))
-    print('Serving a total of {} members'.format(members))
+
+    members = set(members)
+    print('Serving a total of {} members'.format(total_members))
+    print('Total unique members: {}'.format(len(members)))
     # Set status
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='c$info'))
 
@@ -92,9 +99,15 @@ async def await_ap(ctx):
 
 @bot.command(name='users', aliases=['usercount'])
 async def await_usercount(ctx):
-    members = sum([guild.member_count for guild in bot.guilds])
+    members = []
+    for guild in bot.guilds:
+        for member in guild.members:
+            members.append(member.id)
+    total_members = len(members)
+    unique_members = len(set(members))
     guilds = len(bot.guilds)
-    await ctx.send('Online with {} servers and {} total members.'.format(guilds, members))
+    await ctx.send('Online with {} servers and {} total members (Unique members: {}).'
+                   .format(guilds, total_members, unique_members))
 
 
 # Run the bot.
