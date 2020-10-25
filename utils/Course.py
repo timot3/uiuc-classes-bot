@@ -7,8 +7,7 @@ colors = [0x12294b, 0xe84b38]
 
 mistakes = ['Am I wrong?',
             'Did I make a mistake?',
-            'Have a suggestion? Make an issue on GitHub, or',
-            'Want to add this to your own server?']
+            'Have a suggestion?']
 
 
 # Function to get department and class number.
@@ -49,6 +48,6 @@ class Course:
         # print(repr(self.status))
 
         if random.random() < 0.25:
-            embed.set_footer(text=random.choice(mistakes) + ' DM @10x engineer#9075.')
+            embed.set_footer(text=random.choice(mistakes) + ' Make an issue on GitHub (timot3/uiuc-classes-bot).')
 
         return embed
