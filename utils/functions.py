@@ -11,10 +11,10 @@ import math
 from bs4 import BeautifulSoup
 
 classes_sent = {}  # The classes sent in a channel.
-classes_offered = pd.read_csv('data/2020-fa.csv')
+classes_offered = pd.read_csv('data/2021-sp.csv')
 classes_offered['Class'] = classes_offered['Subject'] + classes_offered['Number'].astype(str)
-class_gpa = pd.read_csv('data/uiuc-gpa-dataset.csv')
-class_gpa['Class'] = class_gpa['Subject'] + class_gpa['Number'].astype(str)
+# class_gpa = pd.read_csv('data/uiuc-gpa-dataset.csv')
+# class_gpa['Class'] = class_gpa['Subject'] + class_gpa['Number'].astype(str)
 
 
 # Taken from Prof. Wade's reddit-uiuc-bot.
@@ -31,28 +31,30 @@ def get_recent_average_gpa(course):
             return 'No data'
         else:
             return gpa
-
     else:
-        df = class_gpa[class_gpa["Class"] == course].groupby(
-            "Class").agg("sum").reset_index()
-        if len(df) == 0:
-            return 'No data'
-
-        df["Count GPA"] = df["A+"] + df["A"] + df["A-"] + df["B+"] + df["B"] + df["B-"] + \
-                          df["C+"] + df["C"] + df["C-"] + df["D+"] + df["D"] + df["D-"] + df["W"]
-        df["Sum GPA"] = (4 * (df["A+"] + df["A"])) + (3.67 * df["A-"]) + \
-                        (3.33 * df["B+"]) + (3 * df["B"]) + (2.67 * df["B-"]) + \
-                        (2.33 * df["C+"]) + (2 * df["C"]) + (1.67 * df["C-"]) + \
-                        (1.33 * df["D+"]) + (1 * df["D"]) + (0.67 * df["D-"])
-
-        df["Average GPA"] = df["Sum GPA"] / df["Count GPA"]
-        gpa = df["Average GPA"].values[0]
-
-
-    if gpa is None:
         return 'No data'
-    else:
-        return str(round(gpa, 2))
+
+    # else:
+    #     df = class_gpa[class_gpa["Class"] == course].groupby(
+    #         "Class").agg("sum").reset_index()
+    #     if len(df) == 0:
+    #         return 'No data'
+    #
+    #     df["Count GPA"] = df["A+"] + df["A"] + df["A-"] + df["B+"] + df["B"] + df["B-"] + \
+    #                       df["C+"] + df["C"] + df["C-"] + df["D+"] + df["D"] + df["D-"] + df["W"]
+    #     df["Sum GPA"] = (4 * (df["A+"] + df["A"])) + (3.67 * df["A-"]) + \
+    #                     (3.33 * df["B+"]) + (3 * df["B"]) + (2.67 * df["B-"]) + \
+    #                     (2.33 * df["C+"]) + (2 * df["C"]) + (1.67 * df["C-"]) + \
+    #                     (1.33 * df["D+"]) + (1 * df["D"]) + (0.67 * df["D-"])
+    #
+    #     df["Average GPA"] = df["Sum GPA"] / df["Count GPA"]
+    #     gpa = df["Average GPA"].values[0]
+
+
+    # if gpa is None:
+    #     return 'No data'
+    # else:
+    #     return str(round(gpa, 2))
 
 
 # returns string describing the online/in-person status of the class
@@ -98,7 +100,7 @@ def get_class_url(course):
 def get_class_from_course_explorer(course):
     href = ''
     try:
-        href = urlopen('https://courses.illinois.edu/cisapp/explorer/catalog/2020/fall/' + course[0].upper() + '/'
+        href = urlopen('https://courses.illinois.edu/cisapp/explorer/catalog/2021/spring/' + course[0].upper() + '/'
                        + course[1] + '.xml')
 
     except urllib.error.HTTPError:
@@ -114,13 +116,13 @@ def get_class_from_course_explorer(course):
     deg_attr = ',\n'.join(
         x.text for x in class_tree.iter('genEdAttribute'))  # whatever geneds the class satisfies
     class_link = class_tree.find('termsOffered').find('course')
-    most_recent_url = 'https://courses.illinois.edu/schedule/2020/fall/'
+    most_recent_url = 'https://courses.illinois.edu/schedule/2021/spring/'
     if class_link is None:
         year_term = 'None'
     else:
         year_term = class_link.text
         most_recent_url = get_class_url(class_link.attrib['href'])
-        if year_term == 'Fall 2020':
+        if year_term == 'Spring 2021':
             year_term = 'Offered in ' + year_term + '. :white_check_mark:'
         else:
             year_term = 'Most recently offered in ' + year_term + '.'
@@ -133,34 +135,34 @@ def get_class_from_course_explorer(course):
     return Course(class_id, label, crh, gpa, year_term, deg_attr, description, most_recent_url, online_status)
 
 
-def get_class_from_csv(course, line, class_str):
-    # Get information about a class.
-    class_name = line['Name'].iloc[0].replace('&amp;', '&')  # fix issues with the ampersand
-    line = line.loc[classes_offered['Class'] == class_str]
-    crh = line['Credit Hours'].iloc[0]
-    status = line['YearTerm'].iloc[0].strip()
-    desc = (line.iloc[0]['Description']).replace(' &amp;', '&')
-    deg_attr = line['Degree Attributes'].iloc[0]
-
-    if isinstance(deg_attr, str):
-        deg_attr = deg_attr.strip()
-        deg_attr = deg_attr.replace('and ', '\n').replace('course', '').replace('.', '')
-    else:
-        deg_attr = ''
-
-    status = 'Offered in Fall 2020. :white_check_mark:'
-
-    gpa = get_recent_average_gpa(class_str)
-
-    # Make a Class object with all information about the class.
-    url = get_class_url(course)
-
-    # get online/in-person status
-    if status == 'Offered in Fall 2020. :white_check_mark:':
-        online_status = get_online_status(url)
-    else:
-        online_status = "N/A"
-    return Course(class_str, class_name, crh, gpa, status, deg_attr, desc, url, online_status)
+# def get_class_from_csv(course, line, class_str):
+#     # Get information about a class.
+#     class_name = line['Name'].iloc[0].replace('&amp;', '&')  # fix issues with the ampersand
+#     line = line.loc[classes_offered['Class'] == class_str]
+#     crh = line['Credit Hours'].iloc[0]
+#     status = line['YearTerm'].iloc[0].strip()
+#     desc = (line.iloc[0]['Description']).replace(' &amp;', '&')
+#     deg_attr = line['Degree Attributes'].iloc[0]
+#
+#     if isinstance(deg_attr, str):
+#         deg_attr = deg_attr.strip()
+#         deg_attr = deg_attr.replace('and ', '\n').replace('course', '').replace('.', '')
+#     else:
+#         deg_attr = ''
+#
+#     status = 'Offered in Fall 2020. :white_check_mark:'
+#
+#     gpa = get_recent_average_gpa(class_str)
+#
+#     # Make a Class object with all information about the class.
+#     url = get_class_url(course)
+#
+#     # get online/in-person status
+#     if status == 'Offered in Fall 2020. :white_check_mark:':
+#         online_status = get_online_status(url)
+#     else:
+#         online_status = "N/A"
+#     return Course(class_str, class_name, crh, gpa, status, deg_attr, desc, url, online_status)
 
 
 async def limit_classes_sent(channel, class_str):
@@ -192,24 +194,24 @@ async def send_class(channel, course):
     # Start asynchronous task that pops the class from the list in 30 seconds.
     asyncio.create_task(limit_classes_sent(channel, class_str))
 
-    line = classes_offered.loc[classes_offered['Class'] == class_str]
+    # line = classes_offered.loc[classes_offered['Class'] == class_str]
 
-    if len(line) == 0:
-        try:
-            message_str = get_class_from_course_explorer(course)
-            if message_str is None:
-                await channel.send(class_str + ': couldn\'t find this class.')
-            else:
-                await channel.send(embed=message_str.get_embed())
+    # if len(line) == 0:
+    try:
+        message_str = get_class_from_course_explorer(course)
+        if message_str is None:
+            await channel.send(class_str + ': couldn\'t find this class.')
+        else:
+            await channel.send(embed=message_str.get_embed())
 
-        except Exception:
-            await channel.send('I had an error processing this message. Please DM <@427146100894334987>.')
-            print(traceback.format_exc())
+    except Exception:
+        await channel.send('I had an error processing this message. Please make an issue on github (https://github.com/timot3/uiuc-classes-bot/issues).')
+        print(traceback.format_exc())
 
-    else:
-        # send embed in channel
-        message_str = get_class_from_csv(course, line, class_str)
-        await channel.send(embed=message_str.get_embed())
+    # else:
+    #     # send embed in channel
+    #     message_str = get_class_from_csv(course, line, class_str)
+    #     await channel.send(embed=message_str.get_embed())
 
 
 
