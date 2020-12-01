@@ -13,17 +13,19 @@ from bs4 import BeautifulSoup
 classes_sent = {}  # The classes sent in a channel.
 classes_offered = pd.read_csv('data/2021-sp.csv')
 classes_offered['Class'] = classes_offered['Subject'] + classes_offered['Number'].astype(str)
+
+meme_responses = { 'BG101': 'Intro to Philip Hu'}
 # class_gpa = pd.read_csv('data/uiuc-gpa-dataset.csv')
 # class_gpa['Class'] = class_gpa['Subject'] + class_gpa['Number'].astype(str)
 
 
-# Taken from Prof. Wade's reddit-uiuc-bot.
+'''
+:param course: string that represents the class ('CS125')
+:return: The average gpa for that class
+'''
+
 
 def get_recent_average_gpa(course):
-    '''
-    :param course: string that represents the class ('CS125')
-    :return: The average gpa for that class
-    '''
     gpa = classes_offered[classes_offered['Class'] == course]
     if len(gpa) > 0:
         gpa = gpa.iloc[0]['GPA']
@@ -50,7 +52,6 @@ def get_recent_average_gpa(course):
     #     df["Average GPA"] = df["Sum GPA"] / df["Count GPA"]
     #     gpa = df["Average GPA"].values[0]
 
-
     # if gpa is None:
     #     return 'No data'
     # else:
@@ -64,8 +65,8 @@ def get_online_status(most_recent_url):
         r = requests.get(most_recent_url)
         soup = BeautifulSoup(r.content, 'html.parser')
         script = str(soup.find_all("script")[4])
-        script = script.replace('\"','')
-        script = script.replace('\\a','A')
+        script = script.replace('\"', '')
+        script = script.replace('\\a', 'A')
         # print(script)
         online_sections = script.count('type:<div class=App-meeting\>Online')
         total_sections = script.count("crn")
@@ -200,18 +201,19 @@ async def send_class(channel, course):
     try:
         message_str = get_class_from_course_explorer(course)
         if message_str is None:
-            await channel.send(class_str + ': couldn\'t find this class.')
+            if class_str in meme_responses:
+                await channel.send(meme_responses[class_str])
+            else:
+                await channel.send(class_str + ': couldn\'t find this class.')
         else:
             await channel.send(embed=message_str.get_embed())
 
     except Exception:
-        await channel.send('I had an error processing this message. Please make an issue on github (https://github.com/timot3/uiuc-classes-bot/issues).')
+        await channel.send('I had an error processing this message. Please make an issue on github ('
+                           'https://github.com/timot3/uiuc-classes-bot/issues).')
         print(traceback.format_exc())
 
     # else:
     #     # send embed in channel
     #     message_str = get_class_from_csv(course, line, class_str)
     #     await channel.send(embed=message_str.get_embed())
-
-
-
