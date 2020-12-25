@@ -10,9 +10,14 @@ import re
 # with open('config.txt', 'r') as f:
 #    TOKEN = f.readline().strip()
 
-TOKEN = os.environ['CLASSBOT_TOKEN']
+TOKEN = os.environ['CLASSBOT_TOKEN'].strip()
+# print(TOKEN.strip())
 
-bot = commands.Bot(command_prefix=('c$', 'C$'), case_insensitive=True, help_command=None)
+# init member caching (for member count across guilds)
+intents = discord.Intents.default()
+intents.members = True
+
+bot = commands.Bot(command_prefix=('c$', 'C$'), case_insensitive=True, help_command=None, intents=intents)
 messages = []
 
 
@@ -111,4 +116,4 @@ async def await_usercount(ctx):
 
 
 # Run the bot.
-bot.run(TOKEN.strip())
+bot.run(TOKEN)
