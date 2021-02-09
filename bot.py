@@ -88,7 +88,7 @@ async def await_info(ctx):
     embed.add_field(name='Geneds - c$Gened', value='Links the Geneds by GPA page.')
 
     embed.add_field(name='API Latency', value=str(round(bot.latency * 1000, 1))+'ms.')
-    embed.set_footer(text='Having issues with the bot? Send a DM to @10x engineer#9075')
+    embed.set_footer(text='Having issues with the bot? Click the "Help" text at the top of this embed, and make an issue on Github.')
     await ctx.send(embed=embed)
 
 
