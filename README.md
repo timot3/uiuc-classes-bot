@@ -3,6 +3,8 @@ Inspired by [Professor Wade Fagen-Ulmschneider's Reddit bot](https://github.com/
 
 First, add this bot to your discord server:
 https://discord.com/api/oauth2/authorize?client_id=710426023224934490&permissions=0&scope=bot
+The bot needs permissions to read messages, send messages, and embed links. I don't auto-grant these 
+permissions in the link so that moderators can decide what channels to give these permissions in.
 
 ### To get a class: 
 `['department''class number']`. 
