@@ -36,27 +36,6 @@ def get_recent_average_gpa(course):
     else:
         return 'No data'
 
-    # else:
-    #     df = class_gpa[class_gpa["Class"] == course].groupby(
-    #         "Class").agg("sum").reset_index()
-    #     if len(df) == 0:
-    #         return 'No data'
-    #
-    #     df["Count GPA"] = df["A+"] + df["A"] + df["A-"] + df["B+"] + df["B"] + df["B-"] + \
-    #                       df["C+"] + df["C"] + df["C-"] + df["D+"] + df["D"] + df["D-"] + df["W"]
-    #     df["Sum GPA"] = (4 * (df["A+"] + df["A"])) + (3.67 * df["A-"]) + \
-    #                     (3.33 * df["B+"]) + (3 * df["B"]) + (2.67 * df["B-"]) + \
-    #                     (2.33 * df["C+"]) + (2 * df["C"]) + (1.67 * df["C-"]) + \
-    #                     (1.33 * df["D+"]) + (1 * df["D"]) + (0.67 * df["D-"])
-    #
-    #     df["Average GPA"] = df["Sum GPA"] / df["Count GPA"]
-    #     gpa = df["Average GPA"].values[0]
-
-    # if gpa is None:
-    #     return 'No data'
-    # else:
-    #     return str(round(gpa, 2))
-
 
 # returns string describing the online/in-person status of the class
 def get_online_status(most_recent_url):
@@ -95,13 +74,13 @@ def get_class_url(course):
         url = course.split('https://courses.illinois.edu/cisapp/explorer/schedule/')[1].replace('.xml', '')
         return 'https://courses.illinois.edu/schedule/' + url
     else:
-        return 'https://courses.illinois.edu/schedule/2020/fall/' + course[0].upper() + '/' + course[1]
+        return 'https://courses.illinois.edu/schedule/2021/fall/' + course[0].upper() + '/' + course[1]
 
 
 def get_class_from_course_explorer(course):
     href = ''
     try:
-        href = urlopen('https://courses.illinois.edu/cisapp/explorer/catalog/2021/spring/' + course[0].upper() + '/'
+        href = urlopen('https://courses.illinois.edu/cisapp/explorer/catalog/2021/fall/' + course[0].upper() + '/'
                        + course[1] + '.xml')
 
     except urllib.error.HTTPError:
@@ -117,13 +96,13 @@ def get_class_from_course_explorer(course):
     deg_attr = ',\n'.join(
         x.text for x in class_tree.iter('genEdAttribute'))  # whatever geneds the class satisfies
     class_link = class_tree.find('termsOffered').find('course')
-    most_recent_url = 'https://courses.illinois.edu/schedule/2021/spring/'
+    most_recent_url = 'https://courses.illinois.edu/schedule/2021/fall/'
     if class_link is None:
         year_term = 'None'
     else:
         year_term = class_link.text
         most_recent_url = get_class_url(class_link.attrib['href'])
-        if year_term == 'Spring 2021':
+        if year_term == 'Fall 2021':
             year_term = 'Offered in ' + year_term + '. :white_check_mark:'
         else:
             year_term = 'Most recently offered in ' + year_term + '.'

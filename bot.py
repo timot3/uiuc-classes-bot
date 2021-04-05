@@ -52,7 +52,6 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    # TODO Move string parsing to helper function
     potential_message = '[' and ']' in message.content
     classes = []
     if potential_message:
