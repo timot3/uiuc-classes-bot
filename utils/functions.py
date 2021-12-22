@@ -1,23 +1,21 @@
+from typing import Union
+
 import pandas as pd
-from utils.Course import Course
+from utils.Course import EmbedCourse, load_json_into_class
 import discord
-import xml.etree.ElementTree as ET
-import urllib
-from urllib.request import urlopen
+# import xml.etree.ElementTree as ET
+# import urllib
+# from urllib.request import urlopen
 import traceback
 import asyncio
 import requests
 import math
-from bs4 import BeautifulSoup
+
+# from bs4 import BeautifulSoup
+
+api_base_url = 'http://127.0.0.1:5000/'
 
 classes_sent = {}  # The classes sent in a channel.
-classes_offered = pd.read_csv('data/2021-sp.csv')
-classes_offered['Class'] = classes_offered['Subject'] + classes_offered['Number'].astype(str)
-
-meme_responses = { 'BG101': 'Intro to Philip Hu'}
-# class_gpa = pd.read_csv('data/uiuc-gpa-dataset.csv')
-# class_gpa['Class'] = class_gpa['Subject'] + class_gpa['Number'].astype(str)
-
 
 '''
 :param course: string that represents the class ('CS125')
@@ -25,127 +23,7 @@ meme_responses = { 'BG101': 'Intro to Philip Hu'}
 '''
 
 
-def get_recent_average_gpa(course):
-    gpa = classes_offered[classes_offered['Class'] == course]
-    if len(gpa) > 0:
-        gpa = gpa.iloc[0]['GPA']
-        if math.isnan(gpa):
-            return 'No data'
-        else:
-            return gpa
-    else:
-        return 'No data'
-
-
-# returns string describing the online/in-person status of the class
-def get_online_status(most_recent_url):
-    try:
-        # get total num of sections & num online
-        r = requests.get(most_recent_url)
-        soup = BeautifulSoup(r.content, 'html.parser')
-        script = str(soup.find_all("script")[4])
-        script = script.replace('\"', '')
-        script = script.replace('\\a', 'A')
-        # print(script)
-        online_sections = script.count('type:<div class=App-meeting\>Online')
-        total_sections = script.count("crn")
-        # decide which emoji to use based on % of sections online
-
-        status_emoji = ":computer:" if int(online_sections) / int(total_sections) >= 0.5 else ":books:"
-        # create string/desc of status
-        online_status = f"{online_sections} of {total_sections} sections online. {status_emoji}"
-    except Exception:
-        print(traceback.format_exc())
-        online_status = "N/A"
-
-    return online_status
-
-
-def get_class_url(course):
-    '''
-    :param course: either str or array
-            --> If str: this means that we need to get the URL from the API.
-            --> If array: We already know the term, so we can just get the URL
-    :return: None
-    '''
-
-    if isinstance(course, str):
-        # split the most recent url, take the 2nd element of arr
-        url = course.split('https://courses.illinois.edu/cisapp/explorer/schedule/')[1].replace('.xml', '')
-        return 'https://courses.illinois.edu/schedule/' + url
-    else:
-        return 'https://courses.illinois.edu/schedule/2021/fall/' + course[0].upper() + '/' + course[1]
-
-
-def get_class_from_course_explorer(course):
-    href = ''
-    try:
-        href = urlopen('https://courses.illinois.edu/cisapp/explorer/catalog/2021/fall/' + course[0].upper() + '/'
-                       + course[1] + '.xml')
-
-    except urllib.error.HTTPError:
-        return None
-
-    class_tree = ET.parse(href).getroot()
-
-    class_id = class_tree.attrib['id']  # AAS 100
-    # department_code, course_num = course.__get_class(class_id)  # AAS, 100
-    label = class_tree.find('label').text  # Intro Asian American Studies
-    description = class_tree.find('description').text  # Provided description of the class
-    crh = class_tree.find('creditHours').text  # 3 hours.
-    deg_attr = ',\n'.join(
-        x.text for x in class_tree.iter('genEdAttribute'))  # whatever geneds the class satisfies
-    class_link = class_tree.find('termsOffered').find('course')
-    most_recent_url = 'https://courses.illinois.edu/schedule/2021/fall/'
-    if class_link is None:
-        year_term = 'None'
-    else:
-        year_term = class_link.text
-        most_recent_url = get_class_url(class_link.attrib['href'])
-        if year_term == 'Fall 2021':
-            year_term = 'Offered in ' + year_term + '. :white_check_mark:'
-        else:
-            year_term = 'Most recently offered in ' + year_term + '.'
-
-    gpa = get_recent_average_gpa(class_id.upper().replace(' ', ''))
-    #  return __get_dict(year_term, class_id, department_code, course_num, label, description, crh, deg_attr)
-
-    online_status = get_online_status(most_recent_url)
-
-    return Course(class_id, label, crh, gpa, year_term, deg_attr, description, most_recent_url, online_status)
-
-
-# def get_class_from_csv(course, line, class_str):
-#     # Get information about a class.
-#     class_name = line['Name'].iloc[0].replace('&amp;', '&')  # fix issues with the ampersand
-#     line = line.loc[classes_offered['Class'] == class_str]
-#     crh = line['Credit Hours'].iloc[0]
-#     status = line['YearTerm'].iloc[0].strip()
-#     desc = (line.iloc[0]['Description']).replace(' &amp;', '&')
-#     deg_attr = line['Degree Attributes'].iloc[0]
-#
-#     if isinstance(deg_attr, str):
-#         deg_attr = deg_attr.strip()
-#         deg_attr = deg_attr.replace('and ', '\n').replace('course', '').replace('.', '')
-#     else:
-#         deg_attr = ''
-#
-#     status = 'Offered in Fall 2020. :white_check_mark:'
-#
-#     gpa = get_recent_average_gpa(class_str)
-#
-#     # Make a Class object with all information about the class.
-#     url = get_class_url(course)
-#
-#     # get online/in-person status
-#     if status == 'Offered in Fall 2020. :white_check_mark:':
-#         online_status = get_online_status(url)
-#     else:
-#         online_status = "N/A"
-#     return Course(class_str, class_name, crh, gpa, status, deg_attr, desc, url, online_status)
-
-
-async def limit_classes_sent(channel, class_str):
+async def limit_classes_sent(channel: discord.TextChannel, class_str: str) -> None:
     '''
     :param channel: The channel the class was sent in.
     :param class_str: the class sent ('CS125')
@@ -159,13 +37,29 @@ async def limit_classes_sent(channel, class_str):
     classes_sent[channel.id].remove(class_str)
 
 
-async def send_class(channel, course):
-    '''
-    course: tuple containing department code and class number.
-    course[0]: department code
-    course[1]: class number
-    '''
-    class_str = course[0].upper() + course[1]
+def get_class_from_api(course: tuple) -> Union[EmbedCourse, None]:
+
+    query = {'subject': course[0].upper(),
+             'number': course[1]}
+    url = api_base_url + f"api/classes/"
+    res = requests.get(url, params=query)
+
+    # not found!
+    if len(res.json()) == 0:
+        return None
+
+    # always gets one class, so it's safe to do [0] to get the one and only class
+    return load_json_into_class(res.json()[0])
+
+
+async def send_classes(channel: discord.TextChannel, course: tuple) -> None:
+    """
+    :param channel The discord.Channel object that the message was requested.
+    :param course: tuple containing department code and class number (ie "CS 124")
+        - course[0]: department code
+        - course[1]: class number
+    """
+    class_str = f"{course[0].upper()} {course[1]}"  # ensure proper formatting
     if channel.id in classes_sent:
         if class_str in classes_sent[channel.id]:
             await channel.send(class_str + ' was already requested in the last 30 seconds. Slow down!')
@@ -174,16 +68,10 @@ async def send_class(channel, course):
     # Start asynchronous task that pops the class from the list in 30 seconds.
     asyncio.create_task(limit_classes_sent(channel, class_str))
 
-    # line = classes_offered.loc[classes_offered['Class'] == class_str]
-
-    # if len(line) == 0:
     try:
-        message_str = get_class_from_course_explorer(course)
+        message_str = get_class_from_api(course)
         if message_str is None:
-            if class_str in meme_responses:
-                await channel.send(meme_responses[class_str])
-            else:
-                await channel.send(class_str + ': couldn\'t find this class.')
+            await channel.send(class_str + ': couldn\'t find this class.')
         else:
             await channel.send(embed=message_str.get_embed())
 
@@ -192,7 +80,3 @@ async def send_class(channel, course):
                            'https://github.com/timot3/uiuc-classes-bot/issues).')
         print(traceback.format_exc())
 
-    # else:
-    #     # send embed in channel
-    #     message_str = get_class_from_csv(course, line, class_str)
-    #     await channel.send(embed=message_str.get_embed())

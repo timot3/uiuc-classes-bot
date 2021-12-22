@@ -1,17 +1,11 @@
-from utils.functions import send_class
+from utils.functions import send_classes
 from discord.ext import commands, tasks
 import discord
 import os
 import re
 
 # If testing locally, use this instead of the OS environment variables
-# TOKEN = ''
-
-# with open('config.txt', 'r') as f:
-#    TOKEN = f.readline().strip()
-
 TOKEN = os.environ['CLASSBOT_TOKEN'].strip()
-# print(TOKEN.strip())
 
 # init member caching (for member count across guilds)
 intents = discord.Intents.default()
@@ -72,7 +66,7 @@ async def on_message(message):
         # Iterate through the courses
     elif len(classes) > 0:
         for course in classes:
-            await send_class(message.channel, course)
+            await send_classes(message.channel, course)
 
     await bot.process_commands(message)
 
