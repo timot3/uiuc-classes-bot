@@ -108,12 +108,12 @@ def load_json_into_class(json_dict):
 
     """
 
-    return EmbedCourse(subject=json_dict['Subject'],
-                       number=json_dict['Number'],
-                       name=json_dict['Name'],
-                       hours=json_dict['Credit Hours'],
-                       label=json_dict['Label'],
-                       description=json_dict['Description'],
-                       GPA=json_dict['GPA'],
-                       deg_attr=process_deg_attr(json_dict['Degree Attributes']),
-                       status=json_dict['YearTerm'])
+    return EmbedCourse(subject=json_dict['subject'],
+                       number=json_dict['number'],
+                       name=json_dict['name'],
+                       hours=json_dict['credit_hours'],
+                       label=json_dict['label'],
+                       description=json_dict['description'],
+                       GPA=json_dict['gpa'],
+                       deg_attr=process_deg_attr(json_dict['degree_attributes']),
+                       status=json_dict['yearterm'])
