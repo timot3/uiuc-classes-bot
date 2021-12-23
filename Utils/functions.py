@@ -10,6 +10,7 @@ import asyncio
 import requests
 import aiohttp
 
+
 api_base_url = 'http://127.0.0.1:5000/'
 
 classes_sent = {}  # The classes sent in a channel.
@@ -116,6 +117,17 @@ def search_classes_from_api(search_query: tuple):
 
 
 async def search_class(channel: nextcord.TextChannel, search_query: tuple):
+
+
+
+
+    """
+    HACKY!! TODO: remove below line. Bad file structure...
+    """
+    from Views.ButtonsView import ButtonsView
+
     res = search_classes_from_api(search_query)
-    embed = SearchCoursesResult(search_query, res).get_embed()
-    await channel.send(embed=embed)
+    search_result = SearchCoursesResult(search_query, res)
+    embed = search_result.get_embed()
+    buttons = ButtonsView().add_classes(search_result.get_labels())
+    await channel.send(embed=embed, view=buttons)
