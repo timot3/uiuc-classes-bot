@@ -2,8 +2,8 @@ from itertools import islice
 from typing import Union
 
 import pandas as pd
-from utils.Course import EmbedCourse, load_json_into_class
-from utils.SearchCoursesResult import SearchCoursesResult
+from Utils.Course import EmbedCourse, load_json_into_class
+from Utils.SearchCoursesResult import SearchCoursesResult
 import nextcord
 import traceback
 import asyncio

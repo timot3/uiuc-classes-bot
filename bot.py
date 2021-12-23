@@ -1,6 +1,6 @@
 import logging
 from nextcord import activity
-from utils.functions import send_classes, print_member_statistics
+from Utils.functions import send_classes, print_member_statistics
 from nextcord.ext import commands, tasks
 import nextcord
 import os
@@ -8,7 +8,7 @@ import re
 import aiohttp
 import asyncio
 
-startup_extensions = ['Cogs.InfoFunctions', 'Cogs.CourseSearch.CourseSearch']
+startup_extensions = ['Cogs.InfoFunctions', 'Cogs.CourseSearch.CourseSearcher']
 
 # set up logging for nextcord
 logger = logging.getLogger('nextcord')
@@ -19,9 +19,12 @@ handler.setFormatter(logging.Formatter(
     '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-# If testing locally, use this instead of the OS environment variables
-TOKEN = os.environ['CLASSBOT_TOKEN'].strip()
 
+# TOKEN = os.environ['CLASSBOT_TOKEN'].strip()
+
+# If testing locally, use this instead of the OS environment variables
+with open('config.txt') as f:
+    TOKEN = f.readline().strip()
 
 # init member caching (for member count across guilds)
 intents = nextcord.Intents.default()

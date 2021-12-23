@@ -20,7 +20,7 @@ class SearchCoursesResult:
         for i in range(min(MAX_EMBED_ITEMS, len(self.query_results))):
             curr_res = self.query_results[i]
 
-            desc = f"""Relevant text: {curr_res['description']}
+            desc = f"""*Relevant text:* {curr_res['description']}
             Credit hours: {curr_res['credit_hours']}             
             """
             name = curr_res['label'] + ": " + curr_res['name']
