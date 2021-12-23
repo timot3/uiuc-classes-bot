@@ -8,7 +8,7 @@ from Utils.functions import send_classes
 class CourseButton(nextcord.ui.Button):
     def __init__(self, name):
         super().__init__()
-        self.label = name
+        self.label = name.replace('*', '')
         # self.style = style
 
     async def callback(self, interaction: Interaction):

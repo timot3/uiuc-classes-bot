@@ -26,7 +26,7 @@ def get_url_from_year_term(year_term, course_name):
     year_term = year_term.split(' ')
     course_name = course_name.split(' ')
     base_url = 'https://courses.illinois.edu/schedule/'
-    base_url += year_term[1] + '/' + year_term[0]
+    base_url += year_term[1] + '/' + year_term[0] + '/'
     base_url += course_name[0] + '/' + course_name[1]
 
     return base_url
@@ -50,7 +50,7 @@ class EmbedCourse:
         Returns the embed for this class to send in a channel.
         """
         title = self.label + ": " + self.name
-        url = get_url_from_year_term(self.status, self.name)
+        url = get_url_from_year_term(self.status, self.label)
         embed = nextcord.Embed(title=title, description=self.description, url=url, color=random.choice(colors))
         embed.add_field(name='Credit Hours', value=self.hours, inline=False)
         embed.add_field(name='Average GPA', value=self.GPA, inline=False)
