@@ -20,7 +20,7 @@ handler.setFormatter(logging.Formatter(
 logger.addHandler(handler)
 
 # If testing locally, use this instead of the OS environment variables
-# TOKEN = os.environ['CLASSBOT_TOKEN'].strip()
+TOKEN = os.environ['CLASSBOT_TOKEN'].strip()
 
 
 # init member caching (for member count across guilds)
@@ -59,7 +59,7 @@ async def start_func():
     async with aiohttp.ClientSession() as session:
         bot.session = session
         try:
-            await bot.start("NjA4ODk4NDkwNjU0OTE2NjA4.XUu26A.agFD5MPr5PpuVDSoeLCqS8hf1Jo")
+            await bot.start(TOKEN)
         except KeyboardInterrupt:
             raise SystemExit
 
