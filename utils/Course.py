@@ -1,4 +1,4 @@
-import discord
+import nextcord
 import re
 import random
 from dataclasses import dataclass
@@ -45,13 +45,13 @@ class EmbedCourse:
     deg_attr: str  # "Quantitative Reasoning"
     status: str  # "Offered in
 
-    def get_embed(self) -> discord.Embed:
+    def get_embed(self) -> nextcord.Embed:
         """
         Returns the embed for this class to send in a channel.
         """
         title = self.label + ": " + self.name
         url = get_url_from_year_term(self.status, self.name)
-        embed = discord.Embed(title=title, description=self.description, url=url, color=random.choice(colors))
+        embed = nextcord.Embed(title=title, description=self.description, url=url, color=random.choice(colors))
         embed.add_field(name='Credit Hours', value=self.hours, inline=False)
         embed.add_field(name='Average GPA', value=self.GPA, inline=False)
 
