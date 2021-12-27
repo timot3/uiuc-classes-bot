@@ -11,10 +11,38 @@ import requests
 import aiohttp
 
 
-api_base_url = 'http://127.0.0.1:5000/'
+api_base_url = 'https://uiuc-classbot.herokuapp.com/'
 
 classes_sent = {}  # The classes sent in a channel.
+from threading import Lock
 
+# key: course name, value: dict that the api would return
+course_cache = dict()
+
+mutex = Lock()
+fields_to_search = ["name", "label", "description"]
+
+
+async def cache_class(course: str, raw: dict, time_length=60) -> None:
+    """
+    https://stackoverflow.com/questions/58774718/asyncio-in-corroutine-runtimeerror-no-running-event-loop
+    :param course: the course requested (ie: 'CS 124')
+    :param raw: dict of the response that would be returned
+    :param time_length: How long to cache for (in seconds). Default 10 min
+    :return: None
+    """
+    if course in course_cache:
+        return
+
+    mutex.acquire()
+    course_cache[course] = raw
+    mutex.release()
+
+    await asyncio.sleep(time_length)
+
+    mutex.acquire()
+    course_cache.pop(course)
+    mutex.release()
 '''
 :param course: string that represents the class ('CS125')
 :return: The average gpa for that class
@@ -87,8 +115,11 @@ async def send_classes(channel: nextcord.TextChannel, course: tuple) -> None:
     asyncio.create_task(limit_classes_sent(channel, class_str))
 
     try:
+        if class_str in course_cache:
+            response = load_json_into_class(course_cache[class_str])
+        else:
+            response = get_class_from_api(course)
 
-        response = get_class_from_api(course)
         if response is None:
             await channel.send(class_str + ': couldn\'t find this class.')
         else:
@@ -101,6 +132,10 @@ async def send_classes(channel: nextcord.TextChannel, course: tuple) -> None:
 
 
 def search_classes_from_api(search_query: tuple):
+    """
+    Makes a GET request to api/classes/search for the provided query.
+    :param
+    """
     query = {
         'query': '+'.join(search_query)
     }
@@ -111,13 +146,17 @@ def search_classes_from_api(search_query: tuple):
     if res.status_code != 200 or len(res.json()) == 0:
         return None
 
-    # always gets one class, so it's safe to do [0] to get the one and only class
+    for item in res.json():
+        # Need to do ['raw']['label'] because search terms may be in the label.
+        # For example, if I search 'math class' and the class returned has 'math' in the label (ie, 'MATH 231'),
+        # Then the course cache will have '**MATH** 231' instead
+        if item['raw']['label'] not in course_cache:
+            asyncio.create_task(cache_class(item['raw']['label'], item['raw']))
 
     return res.json()
 
 
 async def search_class(channel: nextcord.TextChannel, search_query: tuple):
-
     """
     searches classes using the API. TODO: change to non-blocking aiohttp session.
     HACKY!! TODO: remove below line. Bad file structure...

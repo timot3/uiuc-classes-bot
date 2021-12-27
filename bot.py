@@ -20,11 +20,11 @@ handler.setFormatter(logging.Formatter(
 logger.addHandler(handler)
 
 
-# TOKEN = os.environ['CLASSBOT_TOKEN'].strip()
+TOKEN = os.environ['CLASSBOT_TOKEN'].strip()
 
 # If testing locally, use this instead of the OS environment variables
-with open('config.txt') as f:
-    TOKEN = f.readline().strip()
+# with open('config.txt') as f:
+#     TOKEN = f.readline().strip()
 
 # init member caching (for member count across guilds)
 intents = nextcord.Intents.default()
