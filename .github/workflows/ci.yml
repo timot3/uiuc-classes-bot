@@ -58,7 +58,7 @@ jobs:
 
         # (Optional, default: "")
         # Additional options of docker build command.
-        docker_options: "-e CLASSBOT_TOKEN=${{ secrets.BOT_TOKEN }} --rm --name classbot"
+        docker_options: "--env CLASSBOT_TOKEN=${{ secrets.BOT_TOKEN }} --rm --name classbot"
 
         # (Optional, default: "web")
         # Select the process type for which you want the docker container to be uploaded.
