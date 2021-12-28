@@ -14,6 +14,7 @@ class InfoFunctions(commands.Cog):
         embed = nextcord.Embed(title='Help', description=desc, url='https://github.com/timot3/uiuc-classes-bot/')
         embed.add_field(name='AP - c$AP', value='Links the UIUC AP credit page')
         embed.add_field(name='Geneds - c$Gened', value='Links the Geneds by GPA page.')
+        embed.add_field(name='Search - c$search <query>', value='Runs a search with the given query.')
 
         embed.add_field(name='API Latency', value=str(round(self.bot.latency * 1000, 1))+'ms.')
         embed.set_footer(text='Having issues with the bot? Click the "Help" text at the top of this embed, and make an issue on Github.')
