@@ -63,19 +63,7 @@ jobs:
         # Select the process type for which you want the docker container to be uploaded.
         # By default, this argument is set to "web".
         # For more information look at https://devcenter.heroku.com/articles/process-model
-        process_type: web
-
-#  docker:
-#    runs-on: ubuntu-latest
-#    steps:
-#
-#      -
-#        name: Build and push
-#        id: docker_build
-#        uses: docker/build-push-action@v2
-#        with:
-#          push: true
-#          tags: user/app:latest
+        process_type: worker
 
 # Temporarily commented due to WIP API
 #    - name: executing remote ssh commands using password

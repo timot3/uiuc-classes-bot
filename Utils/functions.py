@@ -11,7 +11,7 @@ import requests
 import aiohttp
 
 
-api_base_url = 'https://uiuc-classbot.herokuapp.com/'
+api_base_url = 'https://uiuc-course-api.herokuapp.com/'
 
 classes_sent = {}  # The classes sent in a channel.
 from threading import Lock
@@ -90,8 +90,8 @@ def get_class_from_api(course: tuple) -> Union[EmbedCourse, None]:
     url = api_base_url + f"api/classes/"
     res = requests.get(url, params=query)
 
-    # not found!
     if res.status_code != 200 or len(res.json()) == 0:
+        # not found!
         return None
 
     # always gets one class, so it's safe to do [0] to get the one and only class
@@ -113,7 +113,7 @@ async def send_classes(channel: nextcord.TextChannel, course: tuple) -> None:
 
     # Start asynchronous task that pops the class from the list in 30 seconds.
     asyncio.create_task(limit_classes_sent(channel, class_str))
-
+    response = None
     try:
         if class_str in course_cache:
             response = load_json_into_class(course_cache[class_str])
