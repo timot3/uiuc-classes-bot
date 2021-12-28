@@ -2,12 +2,12 @@ name: remote ssh build
 on: [push]
 
 jobs:
-  build:
+  lint:
 
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [3.9.9]
 
     steps:
     - uses: actions/checkout@v2
@@ -29,13 +29,18 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-    - name: executing remote ssh commands using password
-      uses: appleboy/ssh-action@master
+    # https://github.com/marketplace/actions/build-push-and-release-a-docker-container-to-heroku
+    - name: Build, Push and Release a Docker container to Heroku. # Your custom step name
+      uses: gonuit/heroku-docker-deploy@v1.3.3 # GitHub action name (leave it as it is).
       with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.SSH_SECRET_KEY }}
-        script: |
-          sudo docker pull timot3/uiuc-classes
-          sudo docker stop classbot
-          sudo docker run -itd -e CLASSBOT_TOKEN=${{ secrets.BOT_TOKEN }} --rm --name classbot timot3/uiuc-classes
+        email: ${{ secrets.HEROKU_EMAIL }}
+        heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+        heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+        dockerfile_directory: ./
+        dockerfile_name: Dockerfile
+
+        # Don't cache
+        docker_options: "--no-cache"
+
+        # worker because not running webserver
+        process_type: worker

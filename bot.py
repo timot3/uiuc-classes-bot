@@ -1,118 +1,71 @@
-from utils.functions import send_class
-from discord.ext import commands, tasks
-import discord
+import logging
+from nextcord import activity
+from Utils.functions import send_classes, print_member_statistics
+from nextcord.ext import commands, tasks
+import nextcord
 import os
 import re
+import aiohttp
+import asyncio
 
-# If testing locally, use this instead of the OS environment variables
-# TOKEN = ''
+startup_extensions = ['Cogs.InfoFunctions', 'Cogs.CourseSearch.CourseSearcher']
 
-# with open('config.txt', 'r') as f:
-#    TOKEN = f.readline().strip()
+# set up logging for nextcord
+logger = logging.getLogger('nextcord')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(
+    filename='nextcord.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter(
+    '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
 
-TOKEN = os.environ['CLASSBOT_TOKEN'].strip()
-# print(TOKEN.strip())
+try:
+    TOKEN = os.environ['CLASSBOT_TOKEN'].strip()
+except KeyError:
+    # If testing locally, use this instead of the OS environment variables
+    with open('config.txt') as f:
+        TOKEN = f.readline().strip()
 
 # init member caching (for member count across guilds)
-intents = discord.Intents.default()
+intents = nextcord.Intents.default()
 intents.members = True
 
-bot = commands.Bot(command_prefix=('c$', 'C$'), case_insensitive=True, help_command=None, intents=intents)
-messages = []
+# Discord is making message content a privileged intent as of April 30, 2022.
+# https://support-dev.discord.com/hc/en-us/articles/4404772028055
+# This change is to ensure the continued functionality of the bot.
+intents.messages = True
+activity = nextcord.Activity(
+    type=nextcord.ActivityType.listening, name='c$info')
+
+# Init the actual bot.
+bot = commands.Bot(command_prefix=('c$', 'C$'), case_insensitive=True,
+                   help_command=None, intents=intents, activity=activity)
 
 
 # What to do when bot is online
 @bot.event
 async def on_ready():
-    # Log events to console.
-    print('Bot online.')
-    print("Name: {}".format(bot.user.name))
-    print("ID: {}".format(bot.user.id))
-
-    print('In {} guilds'.format(len(bot.guilds)))
-    members = [] # sum([guild.member_count for guild in bot.guilds])
-    total_members = 0
-    for guild in bot.guilds:
-        for member in guild.members:
-            members.append(member.id)
-        total_members += guild.member_count
-        print('In {}, with owner {}\t\tUsers: {}'.format(guild.name, guild.owner, guild.member_count))
-        # print('Guild permissions: {}'.format(guild.me.guild_permissions))
-
-    members = set(members)
-    print('Serving a total of {} members'.format(total_members))
-    print('Total unique members: {}'.format(len(members)))
-    # Set status
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='c$info'))
-
-
-# Parse every message
-@bot.event
-async def on_message(message):
-    if message.author.bot:
-        return
-
-    potential_message = '[' and ']' in message.content
-    classes = []
-    if potential_message:
-        # Search for quotes in the message
-        msg = message.content.split('\n')
-        # All quotes start with '> ' and end with new line
-        msg = [x for x in msg if not x.startswith('> ')]
-        if len(msg) > 0:
-            # Remake the message but without the quote part.
-            msg = ''.join(x for x in msg)
-            msg = msg.upper()
-            # Parse the message. Converting to a set removes duplicates.
-            classes = list(set(re.findall('\\\\?\[([A-Za-z]{2,4})\s?(\d{3})\\\\?\]', msg)))
-
-    # Find all classes in an input string.
-    if len(classes) > 6:
-        await message.channel.send("To reduce spam, please limit your message to 6 or less classes.")
-        # Iterate through the courses
-    elif len(classes) > 0:
-        for course in classes:
-            await send_class(message.channel, course)
-
-    await bot.process_commands(message)
-
-
-# Add a help command to the bot.
-@bot.command(name='info', aliases=['help'])
-async def await_info(ctx):
-    desc = 'To get a class, do [`department` `number`]. For example: `[cs 225]`. This is case insensitive, ' \
-           'and the space between the department and the class number is optional. '
-    embed = discord.Embed(title='Help', description=desc, url='https://github.com/timot3/uiuc-classes-bot/')
-    embed.add_field(name='AP - c$AP', value='Links the UIUC AP credit page')
-    embed.add_field(name='Geneds - c$Gened', value='Links the Geneds by GPA page.')
-
-    embed.add_field(name='API Latency', value=str(round(bot.latency * 1000, 1))+'ms.')
-    embed.set_footer(text='Having issues with the bot? Click the "Help" text at the top of this embed, and make an issue on Github.')
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='AP')
-async def await_ap(ctx):
-    await ctx.send('https://admissions.illinois.edu/Apply/Freshman/college-credit-AP')
-
-
-@bot.command(name='geneds', aliases=['gened'])
-async def await_ap(ctx):
-    await ctx.send('http://waf.cs.illinois.edu/discovery/every_gen_ed_at_uiuc_by_gpa/')
-
-
-@bot.command(name='users', aliases=['usercount'])
-async def await_usercount(ctx):
-    members = []
-    for guild in bot.guilds:
-        for member in guild.members:
-            members.append(member.id)
-    total_members = len(members)
-    unique_members = len(set(members))
-    guilds = len(bot.guilds)
-    await ctx.send('Online with {} servers and {} total members (Unique members: {}).'
-                   .format(guilds, total_members, unique_members))
+    await print_member_statistics(bot)
 
 
 # Run the bot.
-bot.run(TOKEN)
+async def start_func():
+    # Load cogs
+    for ext in startup_extensions:
+        try:
+            bot.load_extension(ext)
+            print(f"Successfully loaded extension {ext}")
+        except Exception as e:
+            exc = f"{type(e).__name__,}: {e}"
+            print(f"Failed to load extension {ext}\n{exc}")
+
+    async with aiohttp.ClientSession() as session:
+        bot.session = session
+        try:
+            await bot.start(TOKEN)
+        except KeyboardInterrupt:
+            raise SystemExit
+
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(start_func())
