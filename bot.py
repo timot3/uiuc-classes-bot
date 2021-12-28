@@ -1,6 +1,6 @@
 import logging
-from nextcord import activity
-from Utils.functions import send_classes, print_member_statistics
+from nextcord import activity, Interaction, SlashOption
+from Utils.functions import send_classes, search_class, print_member_statistics
 from nextcord.ext import commands, tasks
 import nextcord
 import os
@@ -9,6 +9,7 @@ import aiohttp
 import asyncio
 
 startup_extensions = ['Cogs.InfoFunctions', 'Cogs.CourseSearch.CourseSearcher']
+TESTING_GUILD_ID = 735523773515694144
 
 # set up logging for nextcord
 logger = logging.getLogger('nextcord')
@@ -46,6 +47,22 @@ bot = commands.Bot(command_prefix=('c$', 'C$'), case_insensitive=True,
 @bot.event
 async def on_ready():
     await print_member_statistics(bot)
+
+
+@bot.slash_command(
+    name="search",
+    description="Classbot search command with querying",
+    guild_ids=[TESTING_GUILD_ID],
+)
+async def test_search_slash(
+        interaction: Interaction,
+        query: str = SlashOption(name="query", description="Enter your search query: "),
+):
+    # Introducing SlashOption, how you control individual parameters. Using them, you can provide a custom name and
+    # description, and even set if they are required or not, just like with arg2/ephemeral here!
+    print(repr(query))
+    embed, buttons = await search_class(query)
+    await interaction.response.send_message(embed=embed, view=buttons)
 
 
 # Run the bot.

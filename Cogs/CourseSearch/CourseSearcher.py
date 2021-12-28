@@ -1,11 +1,13 @@
 from typing import List
 
 import nextcord
+from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
 
 import re
 from Utils.functions import send_classes
 from Utils.functions import search_class
+
 
 
 class CourseSearcher(commands.Cog):
@@ -50,8 +52,8 @@ class CourseSearcher(commands.Cog):
 
     @commands.command(name='search')
     async def search(self, ctx, *arg):
-        await search_class(ctx.channel, arg)
-
+        embed, buttons = await search_class(arg)
+        await ctx.send(embed=embed, view=buttons)
 
 
 def setup(bot):

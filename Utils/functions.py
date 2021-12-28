@@ -156,14 +156,19 @@ def search_classes_from_api(search_query: tuple):
     return res.json()
 
 
-async def search_class(channel: nextcord.TextChannel, search_query: tuple):
+async def search_class(search_query: tuple):
     """
     searches classes using the API. TODO: change to non-blocking aiohttp session.
     HACKY!! TODO: remove below line. Bad file structure...
+
+    :returns tuple of (embed, view)
     """
     from Views.ButtonsView import ButtonsView
     res = search_classes_from_api(search_query)
+
     search_result = SearchCoursesResult(search_query, res)
     embed = search_result.get_embed()
     buttons = ButtonsView().add_classes(search_result.get_labels())
-    await channel.send(embed=embed, view=buttons)
+    return embed, buttons
+    # await channel.send(embed=embed, view=buttons)
+    # return

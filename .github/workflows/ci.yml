@@ -1,5 +1,8 @@
 name: remote ssh build
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   lint:
