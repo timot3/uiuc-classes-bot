@@ -1,3 +1,4 @@
+from threading import Lock
 from itertools import islice
 from typing import Union
 
@@ -14,7 +15,6 @@ import aiohttp
 api_base_url = 'https://uiuc-course-api.herokuapp.com/'
 
 classes_sent = {}  # The classes sent in a channel.
-from threading import Lock
 
 # key: course name, value: dict that the api would return
 course_cache = dict()
@@ -43,10 +43,6 @@ async def cache_class(course: str, raw: dict, time_length=60) -> None:
     mutex.acquire()
     course_cache.pop(course)
     mutex.release()
-'''
-:param course: string that represents the class ('CS125')
-:return: The average gpa for that class
-'''
 
 
 async def print_member_statistics(bot):
@@ -62,7 +58,8 @@ async def print_member_statistics(bot):
         for member in guild.members:
             members.append(member.id)
         total_members += guild.member_count
-        print('In {}, with owner {}\t\tUsers: {}'.format(guild.name, guild.owner, guild.member_count))
+        print('In {}, with owner {}\t\tUsers: {}'.format(
+            guild.name, guild.owner, guild.member_count))
         # print('Guild permissions: {}'.format(guild.me.guild_permissions))
 
     members = set(members)
