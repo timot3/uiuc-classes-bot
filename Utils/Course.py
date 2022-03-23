@@ -80,7 +80,7 @@ def process_deg_attr(deg_attr: str):
     :param deg_attr degree attributes as stored on course explorer.
     :returns either `None` or degree attributes on newlines
     """
-    if deg_attr == 'None':
+    if deg_attr is None or deg_attr == 'None':
         return None
     deg_attr = deg_attr[:deg_attr.find(' course.')]
     deg_attr = deg_attr.split(', and ')
