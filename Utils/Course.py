@@ -23,6 +23,7 @@ mistakes = ['Am I wrong?',
 # year_term is status, ie "Spring 2022"
 # course_name is the name of the course, ie "CS 124"
 def get_url_from_year_term(year_term, course_name):
+    print(year_term)
     year_term = year_term.split(' ')
     course_name = course_name.split(' ')
     base_url = 'https://courses.illinois.edu/schedule/'
