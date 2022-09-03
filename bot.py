@@ -115,9 +115,9 @@ async def on_message(message: discord.Message):
             classes = get_all_courses_in_str(msg)
 
     # deprecate message parsing
-    if len(classes) > 0:
-        await message.channel.send("This format of course searching is deprecated. Please use slash commands (ex: "
-                                   "`/course CS 225`).")
+        if len(classes) > 0:
+            await message.channel.send("This format of course searching is deprecated. Please use slash commands (ex: "
+                                       "`/course CS 225`).")
 
 
 async def limit_classes_sent(channel: int, class_str: str) -> None:
