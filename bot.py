@@ -1,5 +1,6 @@
 import discord
 from discord import app_commands
+from discord.ext import commands
 import re
 import asyncio
 import aiohttp
@@ -10,10 +11,6 @@ from MessageContent.CourseMessageContent import FailedRequestContent
 from api import ClassAPI
 from Views.ButtonsView import ButtonsView
 
-
-intents = discord.Intents.default()
-intents.members = True
-intents.message_content = True
 config = None
 
 try:
@@ -46,19 +43,15 @@ def get_all_courses_in_str(message: str) -> list:
     return res
 
 
-class MyClient(discord.Client):
+class MyClient(commands.Bot):
     def __init__(self, test_guild, intents: discord.Intents = discord.Intents.default()):
-        super().__init__(intents=intents)
+        super().__init__(intents=intents, command_prefix="c$")
         self.test_guild = test_guild
-        self.tree = app_commands.CommandTree(self)
-
-    async def setup_hook(self):
-        # This copies the global commands over to your guild.
-        self.tree.copy_global_to(guild=self.test_guild)
-        await self.tree.sync(guild=self.test_guild)
 
 
 intents = discord.Intents.default()
+intents.members = True
+intents.message_content = True
 test_guild = discord.Object(TEST_GUILD)
 client = MyClient(intents=intents, test_guild=test_guild)
 
@@ -114,10 +107,10 @@ async def on_message(message: discord.Message):
             msg = msg.upper()
             classes = get_all_courses_in_str(msg)
 
-    # deprecate message parsing
+        # deprecate message parsing
         if len(classes) > 0:
             await message.channel.send("This format of course searching is deprecated. Please use slash commands (ex: "
-                                       "`/course CS 225`).")
+                                       "`/course CS 225` or `/search <query>`).")
 
 
 async def limit_classes_sent(channel: int, class_str: str) -> None:
