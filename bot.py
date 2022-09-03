@@ -49,7 +49,7 @@ class MyClient(commands.Bot):
         self.test_guild = test_guild
 
     async def startup_hook(self):
-        await self.tree.sync()
+        asyncio.create_task(self.tree.sync())
 
 
 intents = discord.Intents.default()
@@ -76,8 +76,7 @@ async def on_ready():
             members.append(member.id)
         total_members += guild.member_count
         print('In {}, with owner {}\t\tUsers: {}'.format(
-            guild.id, guild.owner, guild.member_count))
-        # print('Guild permissions: {}'.format(guild.me.guild_permissions))
+            guild.name, guild.owner, guild.member_count))
 
     members = set(members)
     print('Serving a total of {} members'.format(total_members))
