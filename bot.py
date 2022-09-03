@@ -48,6 +48,9 @@ class MyClient(commands.Bot):
         super().__init__(intents=intents, command_prefix="c$")
         self.test_guild = test_guild
 
+    async def startup_hook(self):
+        await self.tree.sync()
+
 
 intents = discord.Intents.default()
 intents.members = True
@@ -91,8 +94,6 @@ async def on_message(message: discord.Message):
     """
     if message.author.bot:
         return
-
-    print("Received content: {}".format(message.content))
 
     potential_message = '[' and ']' in message.content
     classes = []
