@@ -48,9 +48,6 @@ class MyClient(commands.Bot):
         super().__init__(intents=intents, command_prefix="c$")
         self.test_guild = test_guild
 
-    async def startup_hook(self):
-        asyncio.create_task(self.tree.sync())
-
 
 intents = discord.Intents.default()
 intents.members = True
@@ -82,6 +79,10 @@ async def on_ready():
     print('Serving a total of {} members'.format(total_members))
     print('Total unique members: {}'.format(len(members)))
     print("----------------")
+
+    print("Loading slash commands...")
+    await client.tree.sync()
+    print("Done loading slash commands.")
 
 
 @client.event
