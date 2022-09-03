@@ -1,71 +1,182 @@
-import logging
-from nextcord import activity
-from Utils.functions import send_classes, print_member_statistics
-from nextcord.ext import commands, tasks
-import nextcord
-import os
+import discord
+from discord import app_commands
 import re
-import aiohttp
 import asyncio
+import aiohttp
+import json
+import os
 
-startup_extensions = ['Cogs.InfoFunctions', 'Cogs.CourseSearch.CourseSearcher']
+from MessageContent.CourseMessageContent import FailedRequestContent
+from api import ClassAPI
+from Views.ButtonsView import ButtonsView
 
-# set up logging for nextcord
-logger = logging.getLogger('nextcord')
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(
-    filename='nextcord.log', encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter(
-    '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
+
+intents = discord.Intents.default()
+intents.members = True
+intents.message_content = True
 
 try:
     TOKEN = os.environ['CLASSBOT_TOKEN'].strip()
+
 except KeyError:
-    # If testing locally, use this instead of the OS environment variables
-    with open('config.txt') as f:
-        TOKEN = f.readline().strip()
+    with open('config.json') as f:
+        config = json.load(f)
+        TOKEN = config['bot_token']
 
-# init member caching (for member count across guilds)
-intents = nextcord.Intents.default()
-intents.members = True
-
-# Discord is making message content a privileged intent as of April 30, 2022.
-# https://support-dev.discord.com/hc/en-us/articles/4404772028055
-# This change is to ensure the continued functionality of the bot.
-intents.messages = True
-activity = nextcord.Activity(
-    type=nextcord.ActivityType.listening, name='c$info')
-
-# Init the actual bot.
-bot = commands.Bot(command_prefix=('c$', 'C$'), case_insensitive=True,
-                   help_command=None, intents=intents, activity=activity)
+classes_sent = {}  # The classes sent in a channel.
 
 
-# What to do when bot is online
-@bot.event
+def get_all_courses_in_str(message: str) -> list:
+    """
+    :param message: The message to search for courses in.
+    :return: A list of courses in the message.
+    """
+    # This regex explained:
+    # ([A-Za-z]{2,4})  # first group: 2-4 letters
+    # \s?  # optional space
+    # (\d{3,4})  # second group: 3-4 digits
+    # Convert result to a set to remove duplicates
+    # then cast to list and return
+    res = list(set(re.findall('([A-Za-z]{2,4})\s?(\d{3})', message)))
+    # convert all first elements to uppercase
+    res = [(x[0].upper(), x[1]) for x in res]
+    return res
+
+
+class MyClient(discord.Client):
+    def __init__(self, test_guild, intents: discord.Intents = discord.Intents.default()):
+        super().__init__(intents=intents)
+        self.test_guild = test_guild
+        self.tree = app_commands.CommandTree(self)
+
+    async def setup_hook(self):
+        # This copies the global commands over to your guild.
+        self.tree.copy_global_to(guild=self.test_guild)
+        await self.tree.sync(guild=self.test_guild)
+
+
+intents = discord.Intents.default()
+test_guild = discord.Object(int(config['test_guild_id']))
+client = MyClient(intents=intents, test_guild=test_guild)
+
+
+@client.event
 async def on_ready():
-    await print_member_statistics(bot)
+    """
+    Event called on bot ready (including launch).
+    """
+    print('Bot online.')
+    print("Name: {}".format(client.user.name))
+    print("ID: {}".format(client.user.id))
+
+    print('In {} guilds'.format(len(client.guilds)))
+    members = []  # sum([guild.member_count for guild in bot.guilds])
+    total_members = 0
+    for guild in client.guilds:
+        for member in guild.members:
+            members.append(member.id)
+        total_members += guild.member_count
+        print('In {}, with owner {}\t\tUsers: {}'.format(
+            guild.id, guild.owner, guild.member_count))
+        # print('Guild permissions: {}'.format(guild.me.guild_permissions))
+
+    members = set(members)
+    print('Serving a total of {} members'.format(total_members))
+    print('Total unique members: {}'.format(len(members)))
+    print("----------------")
 
 
-# Run the bot.
-async def start_func():
-    # Load cogs
-    for ext in startup_extensions:
-        try:
-            bot.load_extension(ext)
-            print(f"Successfully loaded extension {ext}")
-        except Exception as e:
-            exc = f"{type(e).__name__,}: {e}"
-            print(f"Failed to load extension {ext}\n{exc}")
+@client.event
+async def on_message(message: discord.Message):
+    """
+    Process every message the bot has access to. If a message contains a course in
+    the format [`department` `code`] (ie, `[CS 124]`), retrieve the course and send
+    a message in the channel the message was sent in with an embed for the class.
+    """
+    if message.author.bot:
+        return
 
+    print("Received content: {}".format(message.content))
+
+    potential_message = '[' and ']' in message.content
+    classes = []
+    if potential_message:
+        # Search for quotes in the message
+        msg = message.content.split('\n')
+        # All quotes start with '> ' and end with new line
+        msg = [x for x in msg if not x.startswith('> ')]
+        if len(msg) > 0:
+            # Remake the message but without the quote part.
+            msg = ''.join(x for x in msg)
+            msg = msg.upper()
+            classes = get_all_courses_in_str(msg)
+
+    # deprecate message parsing
+    if len(classes) > 0:
+        await message.channel.send("This format of course searching is deprecated. Please use slash commands (ex: "
+                                   "`/course CS 225`).")
+
+
+async def limit_classes_sent(channel: int, class_str: str) -> None:
+    '''
+    :param channel: The channel the class was sent in.
+    :param class_str: the class sent ('CS125')
+    :return: None
+    '''
+    if channel not in classes_sent:
+        classes_sent[channel] = [class_str]
+    else:
+        classes_sent[channel] += [class_str]
+    await asyncio.sleep(30)
+    classes_sent[channel].remove(class_str)
+
+
+@client.tree.command(name="course")
+@app_commands.describe(list_of_classes='List of course codes to look up')
+async def respond_to_course(interaction: discord.Interaction, list_of_classes: str):
+    courses = get_all_courses_in_str(list_of_classes)
+    if len(courses) == 0:
+        await interaction.response.send_message("No courses found in your message.")
+        return
+    elif len(courses) > 6:
+        await interaction.response.send_message("Too many courses. Please limit to 6.")
+        return
+    class_embed_list = []
+    channel_id = interaction.channel_id
     async with aiohttp.ClientSession() as session:
-        bot.session = session
-        try:
-            await bot.start(TOKEN)
-        except KeyboardInterrupt:
-            raise SystemExit
+        for course in courses:
+            # check if course already in cache
+            if channel_id in classes_sent and course in classes_sent[channel_id]:
+                failed_request = FailedRequestContent(course[0], course[1])
+                embed = failed_request.get_embed(":x: Already requested in the last 30 seconds. Slow down!")
+                class_embed_list.append(embed)
+                continue
+
+            # Start asynchronous task that pops the class from the list in 30 seconds.
+            # Limits spamming of classes
+            asyncio.create_task(limit_classes_sent(channel_id, course))
+
+            # make api call to get class
+            embed_course = await ClassAPI().get_class(course, session=session)
+
+            if embed_course is None:
+                failed_request = FailedRequestContent(course[0], course[1])
+                class_embed_list.append(failed_request.get_embed())
+            else:
+                class_embed_list.append(embed_course.get_embed())
+
+    await interaction.response.send_message(embeds=class_embed_list)
 
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(start_func())
+@client.tree.command(name="search")
+@app_commands.describe(query='The search query to execute')
+async def search_class(interaction: discord.Interaction, query: str):
+    async with aiohttp.ClientSession() as session:
+        res = await ClassAPI().search_classes(query, session)
+        embed = res.get_embed()
+        buttons = ButtonsView().add_classes(res.get_labels())
+        await interaction.response.send_message(embed=embed, view=buttons)
+
+
+if __name__ == '__main__':
+    client.run(TOKEN)

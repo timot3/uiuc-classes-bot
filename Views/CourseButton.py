@@ -1,24 +1,22 @@
-import nextcord
+import aiohttp
+import discord
 import asyncio
-from nextcord import Interaction
+from discord import Interaction
 
-from Utils.functions import send_classes
+from api import ClassAPI
 
 
-class CourseButton(nextcord.ui.Button):
+class CourseButton(discord.ui.Button):
     def __init__(self, name):
         super().__init__()
         self.label = name.replace('*', '')
         # self.style = style
 
     async def callback(self, interaction: Interaction):
-        # check that the button was actually pressed
-        # if isinstance(interaction, (nextcord.InteractionType.component)):
-        # send class on button press
-        await send_classes(interaction.channel, tuple(self.label.split(' ')))
+        async with aiohttp.ClientSession() as session:
+            requested_class = await ClassAPI().get_class(tuple(self.label.split(' ')), session)
+            await interaction.response.send_message(embed=requested_class.get_embed())
 
-        # disable button after press to prevent spam
-        # self.disabled = True
 
 
 

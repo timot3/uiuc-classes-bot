@@ -1,18 +1,18 @@
 from typing import Iterable
 
-import nextcord
+import discord
 import asyncio
 
-from nextcord.ui import Item
-from nextcord import Interaction
+from discord.ui import Item
+from discord import Interaction
 
 from Views.CourseButton import CourseButton
 
 
-class ButtonsView(nextcord.ui.View):
+class ButtonsView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=30)
-        # self.view = nextcord.ui.View(timeout=30)
+        # self.view = discord.ui.View(timeout=30)
 
     # item is course title (ie, CS 124)
     def add_class(self, course_title: str):

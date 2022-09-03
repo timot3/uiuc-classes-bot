@@ -1,4 +1,6 @@
-config.txt
+config.json
 ec2-key.pem
 merge-classes.ipynb
 venv/
+**/__pycache__/**
+.idea/

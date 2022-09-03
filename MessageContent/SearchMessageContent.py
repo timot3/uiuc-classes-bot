@@ -1,18 +1,20 @@
-import nextcord
+import discord
 import random
 
-EMBED_COLORS = [0x12294b, 0xe84b38]
+from MessageContent.MessageContent import MessageContent
+
 MAX_EMBED_ITEMS = 4
 
 
-class SearchCoursesResult:
+class SearchMessageContent(MessageContent):
     def __init__(self, search_query, query_results):
-        self.search_query = "Query: " + " ".join(search_query)
+        super().__init__()
+        self.search_query = f"Query: {search_query}"
         self.query_results = query_results
         self.query_result_class_labels = [] if query_results is None else [x['label'] for x in query_results]
 
     def get_embed(self):
-        embed = nextcord.Embed(title=self.search_query, color=random.choice(EMBED_COLORS))
+        embed = discord.Embed(title=self.search_query, color=self.color)
         if self.query_results is None:
             embed.description = "No courses found for this query."
             return embed
