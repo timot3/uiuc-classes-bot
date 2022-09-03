@@ -14,14 +14,17 @@ from Views.ButtonsView import ButtonsView
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
+config = None
 
 try:
     TOKEN = os.environ['CLASSBOT_TOKEN'].strip()
+    TEST_GUILD = int(os.environ['TEST_GUILD'].strip())
 
 except KeyError:
     with open('config.json') as f:
         config = json.load(f)
         TOKEN = config['bot_token']
+        TEST_GUILD = config['test_guild_id']
 
 classes_sent = {}  # The classes sent in a channel.
 
@@ -56,7 +59,7 @@ class MyClient(discord.Client):
 
 
 intents = discord.Intents.default()
-test_guild = discord.Object(int(config['test_guild_id']))
+test_guild = discord.Object(TEST_GUILD)
 client = MyClient(intents=intents, test_guild=test_guild)
 
 
