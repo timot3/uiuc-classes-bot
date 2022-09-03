@@ -54,7 +54,7 @@ class CourseMessageContent(MessageContent):
         if random.random() < 0.25:
             embed.set_footer(text=random.choice(mistakes) + ' Make an issue on GitHub (timot3/uiuc-classes-bot).')
         elif random.random() < 0.5:
-            embed.set_footer(text='This project is run entirely by one student. Please consider donating at ')
+            embed.set_footer(text='This project is run entirely by one student. Please consider donating at https://www.buymeacoffee.com/timot3')
 
         return embed
 
