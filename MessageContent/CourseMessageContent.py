@@ -41,7 +41,7 @@ class CourseMessageContent(MessageContent):
         Returns the embed for this class to send in a channel.
         """
         title = self.label + ": " + self.name
-        url = get_url_from_year_term(self.status, self.name)
+        url = get_url_from_year_term(self.status, self.label)
         embed = discord.Embed(title=title, description=self.description, url=url, color=self.color)
         embed.add_field(name='Credit Hours', value=self.hours, inline=False)
         embed.add_field(name='Average GPA', value=self.gpa, inline=False)
@@ -55,7 +55,7 @@ class CourseMessageContent(MessageContent):
             embed.set_footer(text=random.choice(mistakes) + ' Make an issue on GitHub (timot3/uiuc-classes-bot).')
         elif random.random() < 0.5:
             embed.set_footer(text='This project is run entirely by one student, and would not be available without '
-                                  'your support! Please consider donating at https://www.buymeacoffee.com/timot3.') 
+                                  'your support! Please consider donating at buymeacoff.ee/timot3.')
 
         return embed
 
