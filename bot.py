@@ -81,7 +81,7 @@ async def on_message(message: discord.Message):
             # Remake the message but without the quote part.
             msg = ''.join(x for x in msg)
             msg = msg.upper()
-            courses = get_all_courses_in_str(msg)
+            courses = get_all_courses_in_str(msg, bracketed=True)
 
         # deprecate message parsing
         if len(courses) > 0:

@@ -8,7 +8,7 @@ from api import ClassAPI
 
 classes_sent = {}  # The classes sent in a channel.
 
-def get_all_courses_in_str(message: str) -> list:
+def get_all_courses_in_str(message: str, bracketed: bool = False) -> list:
     """
     :param message: The message to search for courses in.
     :return: A list of courses in the message.
@@ -19,7 +19,10 @@ def get_all_courses_in_str(message: str) -> list:
     # (\d{3,4})  # second group: 3-4 digits
     # Convert result to a set to remove duplicates
     # then cast to list and return
-    res = list(set(re.findall('([A-Za-z]{2,4})\s?(\d{3})', message)))
+    re_str = '([A-Za-z]{2,4})\s?(\d{3})'
+    if bracketed:
+        re_str = r"\[([A-Za-z]{2,4})\s?(\d{3,4})\]"
+    res = list(set(re.findall(re_str, message)))
     # convert all first elements to uppercase
     res = [(x[0].upper(), x[1]) for x in res]
     return res

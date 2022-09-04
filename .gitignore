@@ -4,3 +4,4 @@ merge-classes.ipynb
 venv/
 **/__pycache__/**
 .idea/
+*.pyc
