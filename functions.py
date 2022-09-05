@@ -2,6 +2,7 @@ import asyncio
 import re
 
 import aiohttp
+import discord
 
 from MessageContent.CourseMessageContent import FailedRequestContent
 from api import ClassAPI
@@ -28,12 +29,27 @@ def get_all_courses_in_str(message: str, bracketed: bool = False) -> list:
     return res
 
 
+async def get_course_info(course, session) -> discord.Embed:
+    try:
+        embed_course = await ClassAPI().get_class(course, session=session)
+        if embed_course is None:
+            failed_request = FailedRequestContent(course[0], course[1])
+            return failed_request.get_embed()
+        else:
+           return embed_course.get_embed()
+    except Exception as e:
+        print(e)
+        failed_request = FailedRequestContent(course[0], course[1])
+        return failed_request.get_embed()
+
 async def get_course_embed_list(course_list: list, channel_id: int) -> list:
     """
     :param course_list: A list of courses
     :return: A list of embeds for each course
     """
     class_embed_list = []
+    courses_to_request = []
+    # add
     async with aiohttp.ClientSession() as session:
         for course in course_list:
             # check if course already in cache
@@ -43,18 +59,13 @@ async def get_course_embed_list(course_list: list, channel_id: int) -> list:
                 class_embed_list.append(embed)
                 continue
 
+            courses_to_request.append(course)
             # Start asynchronous task that pops the class from the list in 30 seconds.
             # Limits spamming of classes
             asyncio.create_task(limit_classes_sent(channel_id, course))
 
-            # make api call to get class
-            embed_course = await ClassAPI().get_class(course, session=session)
-
-            if embed_course is None:
-                failed_request = FailedRequestContent(course[0], course[1])
-                class_embed_list.append(failed_request.get_embed())
-            else:
-                class_embed_list.append(embed_course.get_embed())
+        # Get all the courses from the API
+        class_embed_list += await asyncio.gather(*[get_course_info(course, session) for course in courses_to_request])
 
     return class_embed_list
 
