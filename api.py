@@ -173,6 +173,6 @@ class ClassAPI:
         """
         res = await self.search_classes_from_api(query, session)
         if res is None:
-            return None
+            return SearchMessageContent(query, None)
 
         return SearchMessageContent(query, res)
