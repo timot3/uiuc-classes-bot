@@ -9,6 +9,7 @@ from api import ClassAPI
 
 classes_sent = {}  # The classes sent in a channel.
 
+
 def get_all_courses_in_str(message: str, bracketed: bool = False) -> list:
     """
     :param message: The message to search for courses in.
@@ -36,11 +37,12 @@ async def get_course_info(course, session) -> discord.Embed:
             failed_request = FailedRequestContent(course[0], course[1])
             return failed_request.get_embed()
         else:
-           return embed_course.get_embed()
+            return embed_course.get_embed()
     except Exception as e:
         print(e)
         failed_request = FailedRequestContent(course[0], course[1])
         return failed_request.get_embed()
+
 
 async def get_course_embed_list(course_list: list, channel_id: int) -> list:
     """
@@ -68,6 +70,7 @@ async def get_course_embed_list(course_list: list, channel_id: int) -> list:
         class_embed_list += await asyncio.gather(*[get_course_info(course, session) for course in courses_to_request])
 
     return class_embed_list
+
 
 async def limit_classes_sent(channel: int, class_str: str) -> None:
     """

@@ -1,5 +1,4 @@
 import discord
-import random
 
 from MessageContent.MessageContent import MessageContent
 

@@ -126,6 +126,7 @@ class ClassAPI:
         Gets a class from the API.
 
         :param course: tuple of (subject, number)
+        :param session: the aiohttp session to use
         :return: EmbedCourse object
         """
 
