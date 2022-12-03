@@ -9,8 +9,9 @@ permissions in the link so that moderators can decide what channels to give thes
 ### To get a class: 
 `['department''class number']`. This command is case-insensitive.
 
+The bot also supports slash commands!
 
-Alternatively, `c$search <query>` also works. This is powered by my own [UIUC course API](https://github.com/timot3/uiuc-course-api).
+`/search <query>` also works. This is powered by my own [UIUC course API](https://github.com/timot3/uiuc-course-api).
 
 Example:
 ![cs225](https://media.discordapp.net/attachments/735523773515694149/791889935607136266/unknown.png)
