@@ -1,5 +1,7 @@
 import asyncio
 import re
+import traceback
+from typing import List
 
 import aiohttp
 import discord
@@ -10,7 +12,7 @@ from api import ClassAPI
 classes_sent = {}  # The classes sent in a channel.
 
 
-def get_all_courses_in_str(message: str, bracketed: bool = False) -> list:
+def get_all_courses_in_str(message: str, bracketed: bool = False) -> List[tuple]:
     """
     :param message: The message to search for courses in.
     :return: A list of courses in the message.
@@ -21,12 +23,20 @@ def get_all_courses_in_str(message: str, bracketed: bool = False) -> list:
     # (\d{3,4})  # second group: 3-4 digits
     # Convert result to a set to remove duplicates
     # then cast to list and return
-    re_str = '([A-Za-z]{2,4})\s?(\d{3})'
+    re_str = "([A-Za-z]{2,4})\s?(\d{3})\s?(.{1,3})?"
     if bracketed:
-        re_str = r"\[([A-Za-z]{2,4})\s?(\d{3,4})\]"
-    res = list(set(re.findall(re_str, message)))
+        re_str = r"\[([A-Za-z]{2,4})\s?(\d{3})\s?(.{1,3})?\]"
+    found = list(set(re.findall(re_str, message)))
+    print(found)
     # convert all first elements to uppercase
-    res = [(x[0].upper(), x[1]) for x in res]
+    # results may have 2 or 3 elements
+    res = []
+    for course in found:
+        if len(course) == 2 or course[2] == '':
+            res.append((course[0].upper(), course[1]))
+        elif len(course) == 3:
+            res.append((course[0].upper(), course[1], course[2].upper()))
+            
     return res
 
 
@@ -39,12 +49,12 @@ async def get_course_info(course, session) -> discord.Embed:
         else:
             return embed_course.get_embed()
     except Exception as e:
-        print(e)
+        print(traceback.format_exc())
         failed_request = FailedRequestContent(course[0], course[1])
         return failed_request.get_embed()
 
 
-async def get_course_embed_list(course_list: list, channel_id: int) -> list:
+async def get_course_embed_list(course_list: list, channel_id: int) -> List[discord.Embed]:
     """
     :param course_list: A list of courses
     :return: A list of embeds for each course
