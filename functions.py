@@ -27,16 +27,16 @@ def get_all_courses_in_str(message: str, bracketed: bool = False) -> List[tuple]
     if bracketed:
         re_str = r"\[([A-Za-z]{2,4})\s?(\d{3})\s?(.{1,3})?\]"
     found = list(set(re.findall(re_str, message)))
-    print(found)
+
     # convert all first elements to uppercase
     # results may have 2 or 3 elements
     res = []
     for course in found:
-        if len(course) == 2 or course[2] == '':
+        if len(course) == 2 or course[2] == "":
             res.append((course[0].upper(), course[1]))
         elif len(course) == 3:
             res.append((course[0].upper(), course[1], course[2].upper()))
-            
+
     return res
 
 
@@ -54,7 +54,9 @@ async def get_course_info(course, session) -> discord.Embed:
         return failed_request.get_embed()
 
 
-async def get_course_embed_list(course_list: list, channel_id: int) -> List[discord.Embed]:
+async def get_course_embed_list(
+    course_list: list, channel_id: int
+) -> List[discord.Embed]:
     """
     :param course_list: A list of courses
     :return: A list of embeds for each course
@@ -67,7 +69,9 @@ async def get_course_embed_list(course_list: list, channel_id: int) -> List[disc
             # check if course already in cache
             if channel_id in classes_sent and course in classes_sent[channel_id]:
                 failed_request = FailedRequestContent(course[0], course[1])
-                embed = failed_request.get_embed(":x: Already requested in the last 30 seconds. Slow down!")
+                embed = failed_request.get_embed(
+                    ":x: Already requested in the last 30 seconds. Slow down!"
+                )
                 class_embed_list.append(embed)
                 continue
 
@@ -77,7 +81,9 @@ async def get_course_embed_list(course_list: list, channel_id: int) -> List[disc
             asyncio.create_task(limit_classes_sent(channel_id, course))
 
         # Get all the courses from the API
-        class_embed_list += await asyncio.gather(*[get_course_info(course, session) for course in courses_to_request])
+        class_embed_list += await asyncio.gather(
+            *[get_course_info(course, session) for course in courses_to_request]
+        )
 
     return class_embed_list
 
