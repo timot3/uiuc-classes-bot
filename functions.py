@@ -23,10 +23,24 @@ def get_all_courses_in_str(message: str, bracketed: bool = False) -> List[tuple]
     # (\d{3,4})  # second group: 3-4 digits
     # Convert result to a set to remove duplicates
     # then cast to list and return
-    re_str = "([A-Za-z]{2,4})\s?(\d{3})\s?(.{1,3})?"
+
     if bracketed:
         re_str = r"\[([A-Za-z]{2,4})\s?(\d{3})\s?(.{1,3})?\]"
-    found = list(set(re.findall(re_str, message)))
+        found = list(set(re.findall(re_str, message)))
+
+    else:
+        # When requeseting sections, the regex may end up capturing the next course as well.
+        # Avoid this by taking the max of the two regexes.
+        re_str1 = "([A-Za-z]{2,4})\s?(\d{3})\s?(.{1,3})?"
+        re_str2 = "([A-Za-z]{2,4})\s?(\d{3})"
+
+        # get the max finds
+        found1 = list(set(re.findall(re_str1, message)))
+        found2 = list(set(re.findall(re_str2, message)))
+        if len(found2) > len(found1):
+            found = found2
+        else:
+            found = found1
 
     # convert all first elements to uppercase
     # results may have 2 or 3 elements
