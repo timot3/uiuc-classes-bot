@@ -1,5 +1,7 @@
 import asyncio
 import re
+import traceback
+from typing import List
 
 import aiohttp
 import discord
@@ -10,7 +12,7 @@ from api import ClassAPI
 classes_sent = {}  # The classes sent in a channel.
 
 
-def get_all_courses_in_str(message: str, bracketed: bool = False) -> list:
+def get_all_courses_in_str(message: str, bracketed: bool = False) -> List[tuple]:
     """
     :param message: The message to search for courses in.
     :return: A list of courses in the message.
@@ -21,12 +23,34 @@ def get_all_courses_in_str(message: str, bracketed: bool = False) -> list:
     # (\d{3,4})  # second group: 3-4 digits
     # Convert result to a set to remove duplicates
     # then cast to list and return
-    re_str = '([A-Za-z]{2,4})\s?(\d{3})'
+
     if bracketed:
-        re_str = r"\[([A-Za-z]{2,4})\s?(\d{3,4})\]"
-    res = list(set(re.findall(re_str, message)))
+        re_str = r"\[([A-Za-z]{2,4})\s?(\d{3})\s?(.{1,3})?\]"
+        found = list(set(re.findall(re_str, message)))
+
+    else:
+        # When requeseting sections, the regex may end up capturing the next course as well.
+        # Avoid this by taking the max of the two regexes.
+        re_str1 = "([A-Za-z]{2,4})\s?(\d{3})\s?(.{1,3})?"
+        re_str2 = "([A-Za-z]{2,4})\s?(\d{3})"
+
+        # get the max finds
+        found1 = list(set(re.findall(re_str1, message)))
+        found2 = list(set(re.findall(re_str2, message)))
+        if len(found2) > len(found1):
+            found = found2
+        else:
+            found = found1
+
     # convert all first elements to uppercase
-    res = [(x[0].upper(), x[1]) for x in res]
+    # results may have 2 or 3 elements
+    res = []
+    for course in found:
+        if len(course) == 2 or course[2] == "":
+            res.append((course[0].upper(), course[1]))
+        elif len(course) == 3:
+            res.append((course[0].upper(), course[1], course[2].upper()))
+
     return res
 
 
@@ -39,12 +63,14 @@ async def get_course_info(course, session) -> discord.Embed:
         else:
             return embed_course.get_embed()
     except Exception as e:
-        print(e)
+        print(traceback.format_exc())
         failed_request = FailedRequestContent(course[0], course[1])
         return failed_request.get_embed()
 
 
-async def get_course_embed_list(course_list: list, channel_id: int) -> list:
+async def get_course_embed_list(
+    course_list: list, channel_id: int
+) -> List[discord.Embed]:
     """
     :param course_list: A list of courses
     :return: A list of embeds for each course
@@ -57,7 +83,9 @@ async def get_course_embed_list(course_list: list, channel_id: int) -> list:
             # check if course already in cache
             if channel_id in classes_sent and course in classes_sent[channel_id]:
                 failed_request = FailedRequestContent(course[0], course[1])
-                embed = failed_request.get_embed(":x: Already requested in the last 30 seconds. Slow down!")
+                embed = failed_request.get_embed(
+                    ":x: Already requested in the last 30 seconds. Slow down!"
+                )
                 class_embed_list.append(embed)
                 continue
 
@@ -67,7 +95,9 @@ async def get_course_embed_list(course_list: list, channel_id: int) -> list:
             asyncio.create_task(limit_classes_sent(channel_id, course))
 
         # Get all the courses from the API
-        class_embed_list += await asyncio.gather(*[get_course_info(course, session) for course in courses_to_request])
+        class_embed_list += await asyncio.gather(
+            *[get_course_info(course, session) for course in courses_to_request]
+        )
 
     return class_embed_list
 

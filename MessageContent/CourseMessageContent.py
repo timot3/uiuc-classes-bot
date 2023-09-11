@@ -22,12 +22,20 @@ def get_url_from_year_term(year_term, course_name):
 
     return base_url
 
+def get_course_title(subject, number, section, name):
+
+    if section is None:
+        return subject.upper() + str(number) + ": " + name
+    else:
+        return subject.upper() + str(number) + str(section) + ": " + name
+
 class CourseMessageContent(MessageContent):
-    def __init__(self, subject=None, number=None, name=None, hours=None, label=None, description=None, gpa=None,
+    def __init__(self, subject=None, number=None, section=None, name=None, hours=None, label=None, description=None, gpa=None,
                  deg_attr=None, status=None):
         super().__init__()
         self.subject = subject  # CS
         self.number = number  # 124
+        self.section = section  # AL1
         self.name = name  # Introduction to Computer Science I
         self.hours = hours  # 3
         self.label = label  # CS 124
@@ -40,7 +48,7 @@ class CourseMessageContent(MessageContent):
         """
         Returns the embed for this class to send in a channel.
         """
-        title = self.label + ": " + self.name
+        title = get_course_title(self.subject, self.number, self.section, self.name)
         url = get_url_from_year_term(self.status, self.label)
         embed = discord.Embed(title=title, description=self.description, url=url, color=self.color)
         embed.add_field(name='Credit Hours', value=self.hours, inline=False)
@@ -61,14 +69,14 @@ class CourseMessageContent(MessageContent):
 
 
 class FailedRequestContent(MessageContent):
-    def __init__(self, subject=None, number=None):
+    def __init__(self, subject=None, number=None, section=None):
         # set the color to red
         self.color = 0xff0000
 
         if subject is None or number is None:
-            self.label = ""
+            self.title = ""
         else:
-            self.label = subject.upper() + " " + number
+            self.title = get_course_title(subject, number, section, "")
 
     def get_embed(self, description=None) -> discord.Embed:
         """
@@ -76,6 +84,6 @@ class FailedRequestContent(MessageContent):
         """
         if description is None:
             description = ":x: No courses found for this query."
-        embed = discord.Embed(title=self.label, color=self.color)
+        embed = discord.Embed(title=self.title, color=self.color)
         embed.description = description
         return embed

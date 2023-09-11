@@ -2,6 +2,7 @@ config.json
 ec2-key.pem
 merge-classes.ipynb
 venv/
+classbotenv/
 **/__pycache__/**
 .idea/
 *.pyc

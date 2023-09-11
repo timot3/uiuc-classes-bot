@@ -39,7 +39,7 @@ def process_deg_attr(deg_attr: str):
     return '\n'.join(deg_attr)
 
 
-def load_json_into_class(json_dict):
+def load_json_into_class(json_dict, load_section=True):
     """
     Loads a json object retrieved from the API into an EmbedCourse object.
 
@@ -61,9 +61,13 @@ def load_json_into_class(json_dict):
     }
 
     """
-
+    # we don't always want the section -- what if the person didn't request it?
+    section = None
+    if load_section:
+        section = json_dict['section']
     return CourseMessageContent(subject=json_dict['subject'],
                                 number=json_dict['number'],
+                                section=section,
                                 name=json_dict['name'],
                                 hours=json_dict['credit_hours'],
                                 label=json_dict['label'],
@@ -73,29 +77,32 @@ def load_json_into_class(json_dict):
                                 status=json_dict['yearterm'])
 
 
-async def cache_class(course: tuple, raw: dict, time_length=60) -> None:
-    """
-    https://stackoverflow.com/questions/58774718/asyncio-in-corroutine-runtimeerror-no-running-event-loop
-    :param course: the course requested (ie: 'CS 124')
-    :param raw: dict of the response that would be returned
-    :param time_length: How long to cache for (in seconds). Default 10 min
-    :return: None
-    """
-    # convert course to uppercase
-    course = (course[0].upper(), course[1])
-    if course in course_cache:
-        return
+# Let's try enforcing cache at the API level
+# async def cache_class(course: tuple, raw: dict, time_length=600) -> None:
+#     """
+#     https://stackoverflow.com/questions/58774718/asyncio-in-corroutine-runtimeerror-no-running-event-loop
+#     :param course: the course requested (ie: 'CS 124')
+#     :param raw: dict of the response that would be returned
+#     :param time_length: How long to cache for (in seconds). Default 10 min
+#     :return: None
+#     """
+#     # convert course to uppercase
+#     course = (course[0].upper(), course[1])
+#     if course in course_cache:
+#         return
 
-    mutex.acquire()
-    course_cache[course] = raw
-    mutex.release()
+#     mutex.acquire()
+#     course_cache[course] = raw
+#     mutex.release()
 
-    await asyncio.sleep(time_length)
+#     await asyncio.sleep(time_length)
 
-    mutex.acquire()
-    course_cache.pop(course)
-    mutex.release()
+#     mutex.acquire()
+#     course_cache.pop(course)
+#     mutex.release()
 
+def req_has_section(req_tuple: tuple):
+    return len(req_tuple) == 3 and req_tuple[2] != ''
 
 class ClassAPI:
     def __init__(self):
@@ -104,12 +111,18 @@ class ClassAPI:
     async def get_class_from_api(self, course: tuple, session: aiohttp.ClientSession = None):
         """Use Aiohttp to send an async api request"""
         # check if class is cached:
-        if course in course_cache:
-            return course_cache[course]
+        # if course in course_cache:
+        #     return course_cache[course]
 
         if session is None:
             session = aiohttp.ClientSession()
-        params = {'subject': course[0].upper(), 'number': course[1]}
+        
+        if len(course) == 3:
+            params = {'subject': course[0].upper(), 'number': course[1], 'section': course[2]}
+        else:
+            params = {'subject': course[0].upper(), 'number': course[1]}
+
+        print(params)
         async with session.get(self.api_base_url + f"api/classes/", params=params) as resp:
             if resp.status != 200:
                 return None
@@ -134,8 +147,8 @@ class ClassAPI:
         if raw is None:
             return None
 
-        asyncio.create_task(cache_class(course, raw))
-        return load_json_into_class(raw)
+        # asyncio.create_task(cache_class(course, raw))
+        return load_json_into_class(raw, load_section=req_has_section(course))
 
     async def search_classes_from_api(self, search_query: str, session: aiohttp.ClientSession = None):
         """
@@ -158,9 +171,9 @@ class ClassAPI:
             if len(res) == 0:
                 return None
 
-            for item in res:
-                if item['raw']['label'] not in course_cache:
-                    asyncio.create_task(cache_class(item['raw']['label'], item['raw']))
+            # for item in res:
+            #     if item['raw']['label'] not in course_cache:
+            #         asyncio.create_task(cache_class(item['raw']['label'], item['raw']))
 
             return res
 
