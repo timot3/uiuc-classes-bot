@@ -6,18 +6,9 @@ import json
 import os
 
 from api import ClassAPI
+from config import TOKEN
 from Views.ButtonsView import ButtonsView
 from functions import get_all_courses_in_str, get_course_embed_list
-
-config = None
-
-try:
-    TOKEN = os.environ["CLASSBOT_TOKEN"].strip()
-
-except KeyError:
-    with open("config.json") as f:
-        config = json.load(f)
-        TOKEN = config["bot_token"]
 
 
 class MyClient(commands.Bot):

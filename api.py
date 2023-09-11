@@ -7,10 +7,10 @@ import requests
 import json
 import os
 
+from config import BASE_API_URL
+from utils import Course
 from MessageContent.CourseMessageContent import CourseMessageContent
 from MessageContent.SearchMessageContent import SearchMessageContent
-
-API_BASE_URL = 'https://uiuc-course-api.herokuapp.com/'
 
 
 # key: course name, value: dict that the api would return
@@ -77,19 +77,18 @@ def load_json_into_class(json_dict, load_section=True):
                                 status=json_dict['yearterm'])
 
 
-# Let's try enforcing cache at the API level
-# async def cache_class(course: tuple, raw: dict, time_length=600) -> None:
-#     """
-#     https://stackoverflow.com/questions/58774718/asyncio-in-corroutine-runtimeerror-no-running-event-loop
-#     :param course: the course requested (ie: 'CS 124')
-#     :param raw: dict of the response that would be returned
-#     :param time_length: How long to cache for (in seconds). Default 10 min
-#     :return: None
-#     """
-#     # convert course to uppercase
-#     course = (course[0].upper(), course[1])
-#     if course in course_cache:
-#         return
+async def cache_class(course: Course, raw: dict, time_length=600) -> None:
+    """
+    https://stackoverflow.com/questions/58774718/asyncio-in-corroutine-runtimeerror-no-running-event-loop
+    :param course: the course requested (ie: 'CS 124')
+    :param raw: dict of the response that would be returned
+    :param time_length: How long to cache for (in seconds). Default 10 min
+    :return: None
+    """
+    # convert course to uppercase
+    course = (course.subject.upper(), course.number)
+    if course in course_cache:
+        return
 
 #     mutex.acquire()
 #     course_cache[course] = raw
@@ -106,9 +105,9 @@ def req_has_section(req_tuple: tuple):
 
 class ClassAPI:
     def __init__(self):
-        self.api_base_url = API_BASE_URL
+        self.api_base_url = BASE_API_URL
 
-    async def get_class_from_api(self, course: tuple, session: aiohttp.ClientSession = None):
+    async def get_class_from_api(self, course: Course, session: aiohttp.ClientSession = None):
         """Use Aiohttp to send an async api request"""
         # check if class is cached:
         # if course in course_cache:
@@ -116,14 +115,8 @@ class ClassAPI:
 
         if session is None:
             session = aiohttp.ClientSession()
-        
-        if len(course) == 3:
-            params = {'subject': course[0].upper(), 'number': course[1], 'section': course[2]}
-        else:
-            params = {'subject': course[0].upper(), 'number': course[1]}
-
-        print(params)
-        async with session.get(self.api_base_url + f"api/classes/", params=params) as resp:
+        params = {'subject': course.subject.upper(), 'number': course.number}
+        async with session.get(self.api_base_url + f"/api/classes/", params=params) as resp:
             if resp.status != 200:
                 return None
             res = await resp.json()
@@ -158,7 +151,7 @@ class ClassAPI:
         if session is None:
             session = aiohttp.ClientSession()
 
-        url = self.api_base_url + f"api/classes/search/"
+        url = self.api_base_url + f"/api/classes/search/"
 
         if session is None:
             session = aiohttp.ClientSession()

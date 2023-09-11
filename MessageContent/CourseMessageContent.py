@@ -1,9 +1,8 @@
-import discord
-import re
 import random
+
+import discord
+
 from MessageContent.MessageContent import MessageContent
-
-
 
 mistakes = ['Am I wrong?',
             'Did I make a mistake?',

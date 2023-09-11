@@ -1,12 +1,13 @@
 import asyncio
 import re
-import traceback
 from typing import List
 
 import aiohttp
 import discord
+import traceback
 
 from MessageContent.CourseMessageContent import FailedRequestContent
+from utils import Course
 from api import ClassAPI
 
 classes_sent = {}  # The classes sent in a channel.
@@ -51,14 +52,15 @@ def get_all_courses_in_str(message: str, bracketed: bool = False) -> List[tuple]
         elif len(course) == 3:
             res.append((course[0].upper(), course[1], course[2].upper()))
 
+    res = [Course(subject=x[0].upper(), number=x[1]) for x in res]
     return res
 
 
-async def get_course_info(course, session) -> discord.Embed:
+async def get_course_info(course: Course, session) -> discord.Embed:
     try:
         embed_course = await ClassAPI().get_class(course, session=session)
         if embed_course is None:
-            failed_request = FailedRequestContent(course[0], course[1])
+            failed_request = FailedRequestContent(subject=course.subject, number=course.number)
             return failed_request.get_embed()
         else:
             return embed_course.get_embed()
@@ -68,9 +70,7 @@ async def get_course_info(course, session) -> discord.Embed:
         return failed_request.get_embed()
 
 
-async def get_course_embed_list(
-    course_list: list, channel_id: int
-) -> List[discord.Embed]:
+async def get_course_embed_list(course_list: List[Course], channel_id: int) -> List[discord.Embed]:    
     """
     :param course_list: A list of courses
     :return: A list of embeds for each course
@@ -82,10 +82,8 @@ async def get_course_embed_list(
         for course in course_list:
             # check if course already in cache
             if channel_id in classes_sent and course in classes_sent[channel_id]:
-                failed_request = FailedRequestContent(course[0], course[1])
-                embed = failed_request.get_embed(
-                    ":x: Already requested in the last 30 seconds. Slow down!"
-                )
+                failed_request = FailedRequestContent(course.subject, course.number)
+                embed = failed_request.get_embed(":x: Already requested in the last 30 seconds. Slow down!")
                 class_embed_list.append(embed)
                 continue
 
@@ -102,15 +100,15 @@ async def get_course_embed_list(
     return class_embed_list
 
 
-async def limit_classes_sent(channel: int, class_str: str) -> None:
+async def limit_classes_sent(channel: int, course: Course) -> None:
     """
     :param channel: The channel the class was sent in.
-    :param class_str: the class sent ('CS125')
+    :param course: the class sent ('CS125')
     :return: None
     """
     if channel not in classes_sent:
-        classes_sent[channel] = [class_str]
+        classes_sent[channel] = [course]
     else:
-        classes_sent[channel] += [class_str]
+        classes_sent[channel] += [course]
     await asyncio.sleep(30)
-    classes_sent[channel].remove(class_str)
+    classes_sent[channel].remove(course)
