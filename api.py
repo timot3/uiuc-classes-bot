@@ -90,18 +90,15 @@ async def cache_class(course: Course, raw: dict, time_length=600) -> None:
     if course in course_cache:
         return
 
-#     mutex.acquire()
-#     course_cache[course] = raw
-#     mutex.release()
+    mutex.acquire()
+    course_cache[course] = raw
+    mutex.release()
 
-#     await asyncio.sleep(time_length)
+    await asyncio.sleep(time_length)
 
-#     mutex.acquire()
-#     course_cache.pop(course)
-#     mutex.release()
-
-def req_has_section(req_tuple: tuple):
-    return len(req_tuple) == 3 and req_tuple[2] != ''
+    mutex.acquire()
+    course_cache.pop(course)
+    mutex.release()
 
 class ClassAPI:
     def __init__(self):
@@ -127,7 +124,7 @@ class ClassAPI:
             # res returns a list of classes, we only want the first one
             return res[0]
 
-    async def get_class(self, course: tuple, session: aiohttp.ClientSession = None):
+    async def get_class(self, course: Course, session: aiohttp.ClientSession = None):
         """
         Gets a class from the API.
 
@@ -141,7 +138,7 @@ class ClassAPI:
             return None
 
         # asyncio.create_task(cache_class(course, raw))
-        return load_json_into_class(raw, load_section=req_has_section(course))
+        return load_json_into_class(raw, load_section=course.has_section())
 
     async def search_classes_from_api(self, search_query: str, session: aiohttp.ClientSession = None):
         """
@@ -164,9 +161,10 @@ class ClassAPI:
             if len(res) == 0:
                 return None
 
-            # for item in res:
-            #     if item['raw']['label'] not in course_cache:
-            #         asyncio.create_task(cache_class(item['raw']['label'], item['raw']))
+            for item in res:
+                if item['raw']['label'] not in course_cache:
+                    course = Course(subject=item['raw']['subject'], number=item['raw']['number'])
+                    asyncio.create_task(cache_class(course, item['raw']))
 
             return res
 

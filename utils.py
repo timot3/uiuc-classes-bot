@@ -6,6 +6,9 @@ class Course:
     number: str
     section: str = None
 
+    def has_section(self) -> bool:
+        return self.section is not None
+
     def __str__(self) -> str:
         return f"{self.subject.upper()}{self.number}{self.section.upper() if self.section is not None else ''}"
     
