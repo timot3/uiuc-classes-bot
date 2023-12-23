@@ -6,3 +6,4 @@ classbotenv/
 **/__pycache__/**
 .idea/
 *.pyc
+.vscode/
