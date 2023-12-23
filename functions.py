@@ -60,7 +60,9 @@ async def get_course_info(course: Course, session) -> discord.Embed:
     try:
         embed_course = await ClassAPI().get_class(course, session=session)
         if embed_course is None:
-            failed_request = FailedRequestContent(subject=course.subject, number=course.number)
+            failed_request = FailedRequestContent(
+                subject=course.subject, number=course.number
+            )
             return failed_request.get_embed()
         else:
             return embed_course.get_embed()
@@ -70,7 +72,9 @@ async def get_course_info(course: Course, session) -> discord.Embed:
         return failed_request.get_embed()
 
 
-async def get_course_embed_list(course_list: List[Course], channel_id: int) -> List[discord.Embed]:    
+async def get_course_embed_list(
+    course_list: List[Course], channel_id: int
+) -> List[discord.Embed]:
     """
     :param course_list: A list of courses
     :return: A list of embeds for each course
@@ -83,7 +87,9 @@ async def get_course_embed_list(course_list: List[Course], channel_id: int) -> L
             # check if course already in cache
             if channel_id in classes_sent and course in classes_sent[channel_id]:
                 failed_request = FailedRequestContent(course.subject, course.number)
-                embed = failed_request.get_embed(":x: Already requested in the last 30 seconds. Slow down!")
+                embed = failed_request.get_embed(
+                    ":x: Already requested in the last 30 seconds. Slow down!"
+                )
                 class_embed_list.append(embed)
                 continue
 

@@ -1,12 +1,10 @@
 import discord
 import random
 
-mistakes = ['Am I wrong?',
-            'Did I make a mistake?',
-            'Have a suggestion?']
+mistakes = ["Am I wrong?", "Did I make a mistake?", "Have a suggestion?"]
 
 # Illini Blue ('Midnight'), Illini Orange('Cinnabar)
-colors = [0x12294b, 0xe84b38]
+colors = [0x12294B, 0xE84B38]
 
 
 class MessageContent:

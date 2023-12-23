@@ -10,7 +10,9 @@ class SearchMessageContent(MessageContent):
         super().__init__()
         self.search_query = f"Query: {search_query}"
         self.query_results = query_results
-        self.query_result_class_labels = [] if query_results is None else [x['label'] for x in query_results]
+        self.query_result_class_labels = (
+            [] if query_results is None else [x["label"] for x in query_results]
+        )
 
     def get_embed(self):
         embed = discord.Embed(title=self.search_query, color=self.color)
@@ -24,13 +26,14 @@ class SearchMessageContent(MessageContent):
 
             desc = f"""*Relevant text:* {curr_res['description']}
             *Credit hours:* {curr_res['credit_hours']}
-            *Most Recently Offered In:* {curr_res['yearterm']}             
+            *Most Recently Offered In:* {curr_res['yearterm']}
             """
-            name = curr_res['label'] + ": " + curr_res['name']
+            name = curr_res["label"] + ": " + curr_res["name"]
             embed.add_field(name=name, value=desc, inline=False)
 
         embed.set_footer(
-            text=f"Showing the first {iter_range_max} results. Click the buttons below to get more information.")
+            text=f"Showing the first {iter_range_max} results. Click the buttons below to get more information."
+        )
 
         return embed
 
@@ -39,6 +42,3 @@ class SearchMessageContent(MessageContent):
         Returns list of courses that the query returned.
         """
         return self.query_result_class_labels
-
-
-

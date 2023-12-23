@@ -27,6 +27,3 @@ class ButtonsView(discord.ui.View):
         for item in self.children:
             item.disabled = True
         self = self.clear_items()
-
-
-

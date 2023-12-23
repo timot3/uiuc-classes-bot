@@ -1,7 +1,7 @@
 # A Discord Bot for UIUC Classes
 Inspired by [Professor Wade Fagen-Ulmschneider's Reddit bot](https://github.com/illinois/reddit-uiuc-bot/)
 
-### To get a class: 
+### To get a class:
 `['department''class number']`. This command is case-insensitive.
 
 The bot also supports slash commands! Try: `/course <list of courses>`. Ex: `/course cs225 cs124`
